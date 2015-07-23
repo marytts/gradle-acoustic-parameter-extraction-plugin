@@ -1,0 +1,45 @@
+plugins {
+    id 'groovy'
+    id 'maven-publish'
+    id 'nu.studer.plugindev' version '1.0.3'
+}
+
+group 'de.dfki.mary'
+version '0.5.3-SNAPSHOT'
+
+repositories {
+    maven {
+        url 'https://oss.jfrog.org/artifactory/repo'
+    }
+}
+
+def maryttsVersion = '5.1.2'
+
+dependencies {
+    compile localGroovy()
+    compile group:'org.codehaus.gpars', name: 'gpars', version:'1.1.0'
+    // compile group: 'de.dfki.mary', name: 'marytts-runtime', version: maryttsVersion
+    // ['de', 'en', 'fr', 'it', 'ru', 'sv', 'te', 'tr'].each { locale ->
+    //     runtime group: 'de.dfki.mary', name: "marytts-lang-$locale", version: maryttsVersion
+    // }
+}
+
+plugindev {
+    pluginImplementationClass 'de.dfki.mary.coefficientextraction.CoefficientExtractionPlugin'
+    pluginDescription 'An hts coefficient extraction process'
+    pluginLicense 'GPL-3.0'
+    pluginTags 'gradle', 'plugin', 'marytts', 'hts', 'straight', 'extraction'
+    authorId 'ingmar'
+    authorName 'Sébastien Le Maguer'
+    authorEmail 'slemaguer@coli.uni-saarland.de'
+    projectUrl 'https://github.com/marytts/gradle-coefficientextraction-plugin'
+    projectInceptionYear '2015'
+    done()
+}
+
+bintray {
+    user = project.properties.bintrayUser ?: null
+    key = project.properties.bintrayApiKey ?: null
+    pkg.userOrg = 'marytts'
+    pkg.repo = 'marytts'
+}
