@@ -176,10 +176,6 @@ class STRAIGHTProcess implements ProcessInterface
                     
             def extToDir = new Hashtable<String, String>()
             extToDir.put("cmp".toString(), "$project.buildDir/cmp".toString())
-
-            outputs.upToDateWhen { 
-                false 
-            } 
             
             project.user_configuration.models.cmp.streams.each { stream ->
                 dependsOn.add("extract" + stream.kind.toUpperCase())

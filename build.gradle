@@ -2,6 +2,7 @@ plugins {
     id 'groovy'
     id 'maven-publish'
     id 'nu.studer.plugindev' version '1.0.3'
+    id "com.jfrog.bintray" version "1.2"
 }
 
 group 'de.dfki.mary'
@@ -37,9 +38,9 @@ plugindev {
     done()
 }
 
-bintray {
-    user = project.properties.bintrayUser ?: null
-    key = project.properties.bintrayApiKey ?: null
-    pkg.userOrg = 'marytts'
-    pkg.repo = 'marytts'
-}
+// bintray {
+//     user = project.properties.bintrayUser ?: null
+//     key = project.properties.bintrayApiKey ?: null
+//     pkg.userOrg = 'marytts'
+//     pkg.repo = 'marytts'
+// }
