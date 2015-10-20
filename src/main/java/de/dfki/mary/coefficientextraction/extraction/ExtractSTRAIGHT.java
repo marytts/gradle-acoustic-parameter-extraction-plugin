@@ -206,7 +206,5 @@ public class ExtractSTRAIGHT extends ExtractBase
                 
         // 3. clean
         script_file.delete();
-                
-                
     }
 }
