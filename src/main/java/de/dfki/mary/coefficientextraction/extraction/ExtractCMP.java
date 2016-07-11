@@ -38,13 +38,13 @@ public class ExtractCMP extends ExtractBase
     private JSONObject config;
     private String window_script; // FIXME : tmp
     private String addhtkheader_script; // FIXME : tmp
-        
-        
+
+
     public ExtractCMP() throws Exception
     {
         throw new Exception("cannot be used: call \"new ExtractCMP(String config_path)\" instead");
     }
-        
+
     public ExtractCMP(String config_path) throws Exception
     {
         loadConfig(config_path);
@@ -60,12 +60,12 @@ public class ExtractCMP extends ExtractBase
     public void setWindowScriptPath(String path) {
         this.window_script = path;
     }
-        
+
     // FIXME: tmp
     public void setAddHTKHeaderScriptPath(String path) {
         this.addhtkheader_script = path;
     }
-        
+
     /**
      *  Compute the equation O = W.C to get the observations
      *
@@ -88,33 +88,33 @@ public class ExtractCMP extends ExtractBase
         // 1. Generate full command
         String command = "perl " + this.window_script + " " + vec_size + " " + input_file_name;
         command += " " + window_string + " > " + output_file_name;
-                
+
         // 2. extraction
         String[] cmd = {"bash", "-c", command};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
-                
-                
-        BufferedReader reader = 
+
+
+        BufferedReader reader =
             new BufferedReader(new InputStreamReader(p.getInputStream()));
-                
-        String line = "";			
+
+        String line = "";
         // while ((line = reader.readLine())!= null) {
         //         System.out.println(line);
         // }
-                
+
         StringBuilder sb = new StringBuilder();
-        reader = 
+        reader =
             new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                
-        line = "";			
+
+        line = "";
         while ((line = reader.readLine())!= null) {
             sb.append(line + "\n");
         }
         if (!sb.toString().isEmpty())
         {
             throw new Exception(sb.toString());
-        }         
+        }
     }
 
 
@@ -123,45 +123,45 @@ public class ExtractCMP extends ExtractBase
      *
      *    @param file1_name the first file
      *    @param file2_name the second file
-     *    @param output_file_name the produced file 
+     *    @param output_file_name the produced file
      *    @param file1_name dimension of vectors contained by the first file
      *    @param file2_name dimension of vectors contained by the second file
      */
     private void merge(String file1_name, String file2_name, String output_file_name, long file1_vecsize, long file2_vecsize)
         throws Exception
-    {       
+    {
         Process p;
 
         // 1. Generate full command
         String command = "merge +f -s 0 -l " + file2_vecsize + " -L " + file1_vecsize + " " +
             file1_name + " < " + file2_name + " > " + output_file_name;
-                
+
         // 2. extraction
         String[] cmd = {"bash", "-c", command};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
-                
-                
-        BufferedReader reader = 
+
+
+        BufferedReader reader =
             new BufferedReader(new InputStreamReader(p.getInputStream()));
-                
-        String line = "";			
+
+        String line = "";
         // while ((line = reader.readLine())!= null) {
         //         System.out.println(line);
         // }
-                
+
         StringBuilder sb = new StringBuilder();
-        reader = 
+        reader =
             new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                
-        line = "";			
+
+        line = "";
         while ((line = reader.readLine())!= null) {
             sb.append(line + "\n");
         }
         if (!sb.toString().isEmpty())
         {
             throw new Exception(sb.toString());
-        }         
+        }
     }
 
     private void addHTKHeader(String input_file_name, String output_file_name,
@@ -178,36 +178,36 @@ public class ExtractCMP extends ExtractBase
         Process p;
 
         // 1. Generate full command
-        String command = "perl " + this.addhtkheader_script + " " + frameshift + " " + 
+        String command = "perl " + this.addhtkheader_script + " " + frameshift + " " +
             framesize + " " + HTK_feature_type + " " + input_file_name + " > " +
             output_file_name;
-                
+
         // 2. extraction
         String[] cmd = {"bash", "-c", command};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
-                
-                
-        BufferedReader reader = 
+
+
+        BufferedReader reader =
             new BufferedReader(new InputStreamReader(p.getInputStream()));
-                
-        String line = "";			
+
+        String line = "";
         // while ((line = reader.readLine())!= null) {
         //         System.out.println(line);
         // }
-                
+
         StringBuilder sb = new StringBuilder();
-        reader = 
+        reader =
             new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                
-        line = "";			
+
+        line = "";
         while ((line = reader.readLine())!= null) {
             sb.append(line + "\n");
         }
         if (!sb.toString().isEmpty())
         {
             throw new Exception(sb.toString());
-        }        
+        }
     }
 
     /**
@@ -233,7 +233,7 @@ public class ExtractCMP extends ExtractBase
             return winfiles;
         }
     }
- 
+
 
     /**
      * Extraction method => generate the cmp file
@@ -244,14 +244,14 @@ public class ExtractCMP extends ExtractBase
     public void extract(String basename) throws Exception
     {
         // Preparation of temp stuffs
-        String tmp_filename = File.createTempFile(basename, "").getPath();
+        String tmp_filename = File.createTempFile("0000" + basename, "").getPath();
 
-                
+
         // Loading signal config informations
         JSONObject signal = (JSONObject) config.get("signal");
         long samplerate = ((Long) signal.get("samplerate"));
         long frameshift = ((Long) signal.get("frameshift")) * 10000;
-                        
+
         // Loading stream informations
         JSONObject models = (JSONObject) config.get("models");
         JSONObject cmp = (JSONObject) models.get("cmp");
@@ -263,16 +263,16 @@ public class ExtractCMP extends ExtractBase
         {
             JSONObject cur_stream = (JSONObject) cur_elt;
             Hashtable<String, String> cur_internal_stream = new Hashtable<String, String>();
-                        
+
             // MSD Information
             Boolean is_msd = (Boolean) cur_stream.get("is_msd");
-                                
+
             // First get the dimension of the current stream (static only)
             int vecsize = ((Long) cur_stream.get("order")).intValue() + 1;
             cur_internal_stream.put("dim", Long.toString(vecsize));
-                                
+
             // Add the tmp observation file and apply the windows to get it
-                                
+
             ArrayList<String> winfiles = new ArrayList<String>();
             for (Object cur_win : (JSONArray) cur_stream.get("winfiles"))
             {
@@ -287,30 +287,30 @@ public class ExtractCMP extends ExtractBase
             cur_internal_stream.put("kind", kind);
             cur_internal_stream.put("obs_file_name", tmp_filename + "." + kind);
 
-                                
+
             // Add the dynamic to get the final vecsize
             vecsize *= nwin;
             cur_internal_stream.put("vecsize", Long.toString(vecsize));
-                                
+
             // Add a tmp element to save the current size of the vector
             cur_internal_stream.put("cur_total_nsize", Long.toString(total_vecsize));
             total_vecsize += vecsize;
-                                
-                                        
+
+
             // Add to the list
             internal_streams.add(cur_internal_stream);
         }
 
         // Merging
         Hashtable<String, String> cur_stream = internal_streams.get(0);
-                        
+
         String previous_state_filename = tmp_filename + ".tmp_cmp";
         String cur_state_filename = tmp_filename + ".tmp2_cmp";
 
         // Copy first stream to the tmp previous file
         Files.copy(Paths.get(internal_streams.get(0).get("obs_file_name")), Paths.get(previous_state_filename), REPLACE_EXISTING);
-        (new File(internal_streams.get(0).get("obs_file_name"))).delete(); 
-                        
+        (new File(internal_streams.get(0).get("obs_file_name"))).delete();
+
         for (int i=1; i<internal_streams.size(); i++)
         {
             // Merge previous state + current stream
@@ -319,16 +319,16 @@ public class ExtractCMP extends ExtractBase
                   Long.parseLong(cur_stream.get("cur_total_nsize")),
                   Long.parseLong(cur_stream.get("vecsize")));
 
-                                
+
             // Swich (string to save time and space)
             String tmp = cur_state_filename;
             cur_state_filename = previous_state_filename;
             previous_state_filename = tmp;
 
             // Delete coef file
-            (new File(cur_stream.get("obs_file_name"))).delete(); 
+            (new File(cur_stream.get("obs_file_name"))).delete();
         }
-                        
+
         // Add header
         short nb_bytes_frame = (new Integer(4 * ((new Long(total_vecsize)).intValue()))).shortValue();
         addHTKHeader(previous_state_filename, extToDir.get("cmp") + "/" + basename + ".cmp",
@@ -336,7 +336,7 @@ public class ExtractCMP extends ExtractBase
 
         // Delete temps files
         (new File(previous_state_filename)).delete();
-        (new File(cur_state_filename)).delete(); 
-        (new File(tmp_filename)).delete(); 
+        (new File(cur_state_filename)).delete();
+        (new File(tmp_filename)).delete();
     }
 }
