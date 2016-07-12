@@ -20,7 +20,7 @@ import java.nio.channels.FileChannel;
 public class ExtractSTRAIGHT extends ExtractBase
 {
     // magic number for turning off normalization (72089600 = 2200 * 32768)
-    private static final int straight_magic = 72089600;   
+    private static final int straight_magic = 72089600;
     private String straight_path;
     private int sample_rate;
     private float frameshift;
@@ -37,7 +37,7 @@ public class ExtractSTRAIGHT extends ExtractBase
      * STRAIGHT parameter wrapper constructor. Default parameters are set according to the default values of the HTS demo
      *
      *   @param straight_path : the straight toolbox path needed
-     */ 
+     */
     public ExtractSTRAIGHT(String straight_path)
     {
         // Demo parameters
@@ -47,12 +47,12 @@ public class ExtractSTRAIGHT extends ExtractBase
         setMinimumF0(110);
         setMaximumF0(280);
     }
-        
+
     public void setSampleRate(int sample_rate)
     {
         this.sample_rate = sample_rate;
     }
-        
+
     public void setFrameshift(float frameshift)
     {
         this.frameshift = frameshift;
@@ -77,12 +77,12 @@ public class ExtractSTRAIGHT extends ExtractBase
 
         RandomAccessFile aFile = new RandomAccessFile(input_file_name, "r");
         FileChannel inChannel = aFile.getChannel();
-                
+
         // Skip header [FIXME: hard coded for wav files]
         ByteBuffer buffer = ByteBuffer.allocate(44);
         inChannel.read(buffer);
         buffer.clear();
-                
+
         // Compute the variance of the data
         buffer = ByteBuffer.allocate(1024);
         buffer.order(ByteOrder.LITTLE_ENDIAN); // Data is in little_endian not big endian !
@@ -106,7 +106,7 @@ public class ExtractSTRAIGHT extends ExtractBase
 
         // Appl
         norm_coef = (1.0/Math.sqrt(norm_coef)) * straight_magic;
-                
+
         return norm_coef;
     }
 
@@ -122,44 +122,44 @@ public class ExtractSTRAIGHT extends ExtractBase
         String sp_output = extToDir.get("sp") + "/" + tokens[0] + ".sp";
         String f0_output = extToDir.get("f0") + "/" + tokens[0] + ".f0";
 
-                
+
         File script_file = File.createTempFile("extract", ".m");
         PrintWriter writer = new PrintWriter(script_file, "UTF-8");
         writer.println("path(path, '" + this.straight_path + "');");
         writer.println("");
-                
+
         writer.println("prm.spectralUpdateInterval = " + this.frameshift + ";");
         writer.println("prm.F0frameUpdateInterval = " + this.frameshift + ";");
         writer.println("prm.F0searchLowerBound = " + this.mini_F0 + ";");
         writer.println("prm.F0searchUpperBound = " + this.maxi_F0 + ";");
         writer.println("");
-                
-        writer.println("[x, fs] = wavread('" + input_file_name +"');");
+
+        writer.println("[x, fs] = audioread('" + input_file_name +"');");
         writer.println("[f0, ap] = exstraightsource(x, fs, prm);");
         writer.println("[sp] = exstraightspec(x, f0, fs, prm);");
         writer.println("");
-                
+
         writer.println("ap = ap';");
         writer.println("sp = sp';");
         writer.println("sp = sp * " + norm_coef + ";");
         writer.println("");
 
         writer.println("save '" + ap_output + "' ap -ascii;");
-        writer.println("save '" + sp_output + "' sp -ascii;"); 
+        writer.println("save '" + sp_output + "' sp -ascii;");
         writer.println("save '" + f0_output + "' f0 -ascii;");
 
-                
+
         writer.close();
 
         return script_file;
     }
 
-        
+
     public void extract(String input_file_name) throws Exception
     {
         File script_file = new File("not defined");
         Process p;
-                
+
         // Check directories
         for(String ext : Arrays.asList("ap", "f0", "sp")) {
             if (!extToDir.containsKey(ext))
@@ -171,30 +171,30 @@ public class ExtractSTRAIGHT extends ExtractBase
         {
             throw new Exception(" extToDir does not contains \"lf0\" associated directory");
         }
-                
+
         // 1. generate the script
         script_file = generateScript(input_file_name);
-                
+
         // 2. extraction
         String command = "matlab -nojvm -nodisplay -nosplash < \"" + script_file.getPath() + "\"";
         String[] cmd = {"bash", "-c", command};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
-                
-                
-        BufferedReader reader = 
+
+
+        BufferedReader reader =
             new BufferedReader(new InputStreamReader(p.getInputStream()));
-                
-        String line = "";			
+
+        String line = "";
         // while ((line = reader.readLine())!= null) {
         //         System.out.println(line);
         // }
-                
+
         StringBuilder sb = new StringBuilder();
-        reader = 
+        reader =
             new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                
-        line = "";			
+
+        line = "";
         while ((line = reader.readLine())!= null) {
             if (!(line.endsWith("/lib64/libc.so.6: not found"))) // FIXME: libc6 patch
                 sb.append(line + "\n");
@@ -203,7 +203,7 @@ public class ExtractSTRAIGHT extends ExtractBase
         {
             throw new Exception(sb.toString());
         }
-                
+
         // 3. clean
         script_file.delete();
     }
