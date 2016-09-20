@@ -34,7 +34,7 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
         def slurper = new JsonSlurper()
         def config_file =  new File(System.getProperty("configuration"))
         def config = slurper.parseText( config_file.text )
-        
+
         // Adapt pathes
         DataFileFinder.project_path = new File(getClass().protectionDomain.codeSource.location.path).parent
         if (config.data.project_dir) {
@@ -43,7 +43,7 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
 
         def beams = config.settings.training.beam.split() as List
         def nb_proc_local = 1
-        if (project.gradle.startParameter.getParallelThreadCount() != 0) {
+        if (project.gradle.startParameter.getMaxWorkerCount() != 0) {
             nb_proc_local = Runtime.getRuntime().availableProcessors(); // By default the number of core
             if (config.settings.nb_proc) {
                 if (config.settings.nb_proc > nb_proc_local) {
@@ -53,7 +53,7 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
                 nb_proc_local = config.settings.nb_proc
             }
         }
-        
+
         project.ext {
             maryttsVersion = '5.1.2'
 
@@ -62,16 +62,16 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
 
             trained_files = new HashMap()
 
-            
+
             // Nb processes
             nb_proc = nb_proc_local
-            
+
             // HTS wrapper
             utils_dir = "$project.buildDir/tmp/utils"
 
             template_dir = "$project.buildDir/tmp/templates"
 
-            
+
             input_file = DataFileFinder.getFilePath(config.data.wav_dir) + "/${project.name}.wav"
             basename = project.name
         }
@@ -111,7 +111,7 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
             //     testCompile "junit:junit:4.11"
             // }
 
-            def kinds = ["straight":new STRAIGHTProcess(), "spline":new SplineProcess()];
+            def kinds = ["straight":new STRAIGHTProcess(), "spline":new SplineProcess(), "world":new WorldProcess()];
             kinds[project.user_configuration.settings.extraction.kind].addTasks(project)
         }
     }
