@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.InputStreamReader;
 import java.util.Hashtable;
 import java.util.Arrays;
@@ -11,6 +12,13 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+
+// Template part
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.Template;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.VelocityContext;
 
 /**
  * Coefficients extraction based on STRAIGHT
@@ -123,33 +131,34 @@ public class ExtractSTRAIGHT extends ExtractBase
         String f0_output = extToDir.get("f0") + "/" + tokens[0] + ".f0";
 
 
+        // Init template engine
+        VelocityEngine ve = new VelocityEngine();
+        ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+        ve.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+        ve.init();
+
+        /* fill map of values  */
+        VelocityContext context = new VelocityContext();
+        context.put("straight_path", this.straight_path);
+        context.put("frameshift", this.frameshift);
+        context.put("mini_F0", this.mini_F0);
+        context.put("maxi_F0", this.maxi_F0);
+        context.put("norm_coef", norm_coef);
+        context.put("input_file_name", input_file_name);
+        context.put("f0_output", f0_output);
+        context.put("sp_output", sp_output);
+        context.put("ap_output", ap_output);
+
+        // Get and adapt Template
+        Template t = ve.getTemplate("de/dfki/mary/coefficientextraction/extraction/extract_straight.m");
+        StringWriter template_writer = new StringWriter();
+        t.merge(context, template_writer);
+
+        // Generate script file
         File script_file = File.createTempFile("extract", ".m");
-        PrintWriter writer = new PrintWriter(script_file, "UTF-8");
-        writer.println("path(path, '" + this.straight_path + "');");
-        writer.println("");
-
-        writer.println("prm.spectralUpdateInterval = " + this.frameshift + ";");
-        writer.println("prm.F0frameUpdateInterval = " + this.frameshift + ";");
-        writer.println("prm.F0searchLowerBound = " + this.mini_F0 + ";");
-        writer.println("prm.F0searchUpperBound = " + this.maxi_F0 + ";");
-        writer.println("");
-
-        writer.println("[x, fs] = audioread('" + input_file_name +"');");
-        writer.println("[f0, ap] = exstraightsource(x, fs, prm);");
-        writer.println("[sp] = exstraightspec(x, f0, fs, prm);");
-        writer.println("");
-
-        writer.println("ap = ap';");
-        writer.println("sp = sp';");
-        writer.println("sp = sp * " + norm_coef + ";");
-        writer.println("");
-
-        writer.println("save '" + ap_output + "' ap -ascii;");
-        writer.println("save '" + sp_output + "' sp -ascii;");
-        writer.println("save '" + f0_output + "' f0 -ascii;");
-
-
-        writer.close();
+        PrintWriter script_writer = new PrintWriter(script_file, "UTF-8");
+        script_writer.println(template_writer.toString());
+        script_writer.close();
 
         return script_file;
     }
