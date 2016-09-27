@@ -35,7 +35,7 @@ class WorldProcess implements ProcessInterface
                 (new File("$project.buildDir/f0")).mkdirs()
                 (new File("$project.buildDir/lf0")).mkdirs()
 
-                def extractor = new ExtractWorld(project.user_configuration.path.straight)
+                def extractor = new ExtractWorld()
 
                 // **
                 extractor.setFrameshift(project.user_configuration.signal.frameshift)

@@ -116,7 +116,7 @@ public class ExtractLF0 extends ExtractBase
     {
         
         // 2. extraction
-        String command = "x2x +af " + input_file_name + " | ";
+        String command = "x2x +df " + input_file_name + " | ";
         command += "sopr -magic 0.0 -LN -MAGIC -1.0E+10 > " + output_file_name;
 
         String[] cmd = {"bash", "-c", command};

@@ -17,7 +17,7 @@ import java.nio.channels.FileChannel;
  *
  * @author <a href="mailto:slemaguer@coli.uni-saarland.de">Sébastien Le Maguer</a>
  */
-public class Extractorld extends ExtractBase
+public class ExtractWorld extends ExtractBase
 {
     private int sample_rate;
     private float frameshift;
@@ -57,9 +57,6 @@ public class Extractorld extends ExtractBase
         String sp_output = extToDir.get("sp") + "/" + tokens[0] + ".sp";
         String f0_output = extToDir.get("f0") + "/" + tokens[0] + ".f0";
 
-        // 1. generate the script
-        script_file = generateScript(input_file_name);
-
         // 2. extraction
         String[] cmd = {"world_analysis", input_file_name, f0_output, sp_output, ap_output};
         p = Runtime.getRuntime().exec(cmd);
@@ -86,8 +83,5 @@ public class Extractorld extends ExtractBase
         {
             throw new Exception(sb.toString());
         }
-
-        // 3. clean
-        script_file.delete();
     }
 }

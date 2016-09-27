@@ -96,7 +96,7 @@ public class ExtractBAP extends ExtractBase
         Process p;
 
         // 1. Generate full command
-        String command = "x2x +af " + input_file_name + " |";
+        String command = "x2x +df " + input_file_name + " |";
         command += 	"mgcep -a " + freqwarp + " -m " + order + " -l 2048 -e 1.0E-08 -j 0 -f 0.0 -q 1 > " + output_file_name;
                 
         // 2. extraction
