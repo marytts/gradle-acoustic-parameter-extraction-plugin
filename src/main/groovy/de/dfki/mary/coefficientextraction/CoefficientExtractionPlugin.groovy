@@ -100,16 +100,7 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
             }
         }
 
-
         project.afterEvaluate {
-            // project.dependencies {
-            //     compile "de.dfki.mary:marytts-lang-$project.voice.locale.language:$project.maryttsVersion"
-            //     legacy("de.dfki.mary:marytts-builder:$project.maryttsVersion") {
-            //         exclude module: 'mwdumper'
-            //         exclude module: 'sgt'
-            //     }
-            //     testCompile "junit:junit:4.11"
-            // }
 
             def kinds = ["straight":new STRAIGHTProcess(), "spline":new SplineProcess(), "world":new WorldProcess()];
             kinds[project.user_configuration.settings.extraction.kind].addTasks(project)

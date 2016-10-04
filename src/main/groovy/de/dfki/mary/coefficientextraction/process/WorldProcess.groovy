@@ -29,11 +29,11 @@ class WorldProcess implements ProcessInterface
         project.task('extractWorld') {
             inputs.files project.input_file
             outputs.files "$project.buildDir/f0/" + project.basename + ".f0", "$project.buildDir/ap/" + project.basename + ".ap", "$project.buildDir/sp/" + project.basename + ".sp"
+
             doLast {
                 (new File("$project.buildDir/ap")).mkdirs()
                 (new File("$project.buildDir/sp")).mkdirs()
                 (new File("$project.buildDir/f0")).mkdirs()
-                (new File("$project.buildDir/lf0")).mkdirs()
 
                 def extractor = new ExtractWorld()
 
@@ -47,7 +47,6 @@ class WorldProcess implements ProcessInterface
                 extToDir.put("ap".toString(), "$project.buildDir/ap".toString())
                 extToDir.put("sp".toString(), "$project.buildDir/sp".toString())
                 extToDir.put("f0".toString(), "$project.buildDir/f0".toString())
-                extToDir.put("lf0".toString(), "$project.buildDir/lf0".toString())
                 extractor.setDirectories(extToDir)
 
                 extractor.extract(project.input_file)
