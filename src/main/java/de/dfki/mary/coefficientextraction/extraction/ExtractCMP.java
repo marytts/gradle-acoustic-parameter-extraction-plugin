@@ -175,7 +175,6 @@ public class ExtractCMP extends ExtractBase
                             }
                             else
                             {
-                                System.out.println(win[k+nlr] * input_data[((t+k)*dim)+d]);
                                 output_data[t*n_win*dim + dim * i_win + d] += win[k+nlr] * input_data[((t+k)*dim)+d];
                             }
                         }
@@ -230,7 +229,6 @@ public class ExtractCMP extends ExtractBase
 
 
         // Generate header
-        System.out.println("nb_frames = " + nb_frames);
         buffer.putInt((int) nb_frames);
         buffer.putInt((int) frameshift);
 
