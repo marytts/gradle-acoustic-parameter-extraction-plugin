@@ -173,11 +173,7 @@ class WorldProcess implements ProcessInterface
             doLast {
 
                 def extractor = new ExtractCMP(System.getProperty("configuration"))
-
-                extractor.setWindowScriptPath(project.getParent().getProjectDir().toString() + "/utils/window.pl")
-                extractor.setAddHTKHeaderScriptPath(project.getParent().getProjectDir().toString() + "/utils/addhtkheader.pl")
                 extractor.setDirectories(extToDir)
-
                 extractor.extract("$project.basename")
             }
 

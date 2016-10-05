@@ -38,7 +38,7 @@ class SplineProcess implements ProcessInterface
                 (new File("$project.buildDir/sp")).mkdirs()
                 (new File("$project.buildDir/f0")).mkdirs()
                 (new File("$project.buildDir/lf0")).mkdirs()
-        
+
                 def extractor = new ExtractSTRAIGHT(project.user_configuration.path.straight)
 
                 // **
@@ -54,9 +54,9 @@ class SplineProcess implements ProcessInterface
                 }
                 extractor.setFrameshift(project.user_configuration.signal.frameshift)
                 extractor.setSampleRate(project.user_configuration.signal.samplerate)
-                                
+
                 // **
-        
+
                 def extToDir = new Hashtable<String, String>()
                 extToDir.put("ap".toString(), "$project.buildDir/ap".toString())
                 extToDir.put("sp".toString(), "$project.buildDir/sp".toString())
@@ -71,7 +71,7 @@ class SplineProcess implements ProcessInterface
         project.task('extractLF0') {
             inputs.files "$project.buildDir/f0/" + project.basename + ".f0"
             outputs.files "$project.buildDir/lf0/" + project.basename + ".lf0"
-            
+
             if (!(new File("$project.buildDir/lf0/" + project.basename + ".lf0")).exists()) {
                 dependsOn.add("extractSTRAIGHT")
             }
@@ -79,33 +79,33 @@ class SplineProcess implements ProcessInterface
             doLast {
                 (new File("$project.buildDir/lf0")).mkdirs()
                 def extractor = new ExtractLF0()
-                
+
                 project.user_configuration.models.cmp.streams.each { stream ->
                     if (stream.kind ==  "spline") {
                         extractor = new ExtractLF0(true, stream.parameters.lower_f0)
                     }
                 }
-                
+
                 def extToDir = new Hashtable<String, String>()
                 extToDir.put("lf0".toString(), "$project.buildDir/lf0".toString())
-                extractor.setDirectories(extToDir)        
+                extractor.setDirectories(extToDir)
                 extractor.extract("$project.buildDir/f0/" + project.basename + ".f0")
-                
+
             }
         }
-        
+
         project.task('extractSPLINE', dependsOn:'extractLF0') {
-            
+
             def lf0_file = new File("$project.buildDir/lf0/" + project.basename + ".lf0")
             inputs.files lf0_file
 
             def spline_file = new File("$project.buildDir/spline/" + project.basename + ".spline")
 
             outputs.files spline_file
-            
-            
+
+
             doLast {
-            
+
                 // 2. get spline file
                 (new File("$project.buildDir/spline")).mkdirs()
                 def extractor = new ExtractSpline(project.user_configuration.signal.frameshift * 10000, 3) // FIXME: take configuration into account !
@@ -117,48 +117,40 @@ class SplineProcess implements ProcessInterface
                     }
                 }
                 */
-                
+
                 def extToDir = new Hashtable<String, String>()
                 extToDir.put("spline".toString(), "$project.buildDir/spline".toString())
                 extToDir.put("projdir".toString(), project.getRootProject().projectDir)
                 extToDir.put("lab".toString(), project.user_configuration.data.mono_lab_dir.toString())
-                extractor.setDirectories(extToDir)        
+                extractor.setDirectories(extToDir)
                 extractor.extract(lf0_file.getPath())
 
             }
         }
-        
+
         /**
          * CMP generation task
          */
         project.task('generateCMP') {
             (new File("$project.buildDir/cmp")).mkdirs()
             outputs.files "$project.buildDir/cmp" + project.basename + ".cmp"
-                    
+
             def extToDir = new Hashtable<String, String>()
             extToDir.put("cmp".toString(), "$project.buildDir/cmp".toString())
 
-            outputs.upToDateWhen { 
-                false 
-            } 
-            
             project.user_configuration.models.cmp.streams.each { stream ->
                 dependsOn.add("extract" + stream.kind.toUpperCase())
                 extToDir.put(stream.kind.toLowerCase().toString(),
                              ("$project.buildDir/" + stream.kind.toLowerCase()).toString())
             }
-            
+
             doLast {
-                
+
                 def extractor = new ExtractCMP(System.getProperty("configuration"))
-                
-                extractor.setWindowScriptPath(project.getParent().getProjectDir().toString() + "/utils/window.pl")
-                extractor.setAddHTKHeaderScriptPath(project.getParent().getProjectDir().toString() + "/utils/addhtkheader.pl")
                 extractor.setDirectories(extToDir)
-                
                 extractor.extract("$project.basename")
             }
-            
+
         }
     }
 }
