@@ -1,10 +1,12 @@
 package de.dfki.mary.coefficientextraction.extraction;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.util.Hashtable;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import java.nio.ByteOrder;
 import static java.nio.file.StandardCopyOption.*;
 
 
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -34,10 +37,8 @@ import org.ejml.simple.SimpleMatrix;
  */
 public class ExtractCMP extends ExtractBase
 {
-
+    private static final float IGNORE_VALUE = (float) -1.0e+10;
     private JSONObject config;
-    private String window_script; // FIXME : tmp
-    private String addhtkheader_script; // FIXME : tmp
 
 
     public ExtractCMP() throws Exception
@@ -56,67 +57,195 @@ public class ExtractCMP extends ExtractBase
         config = (JSONObject) parser.parse(new FileReader(config_path));
     }
 
-    // FIXME: tmp
-    public void setWindowScriptPath(String path) {
-        this.window_script = path;
-    }
-
-    // FIXME: tmp
-    public void setAddHTKHeaderScriptPath(String path) {
-        this.addhtkheader_script = path;
-    }
 
     /**
      *  Compute the equation O = W.C to get the observations
      *
-     *  TODO: optimize!!!
      */
-    private void applyWindows(String input_file_name, String output_file_name,
-                              int vec_size, ArrayList<String> window_file_names,
-                              int nbwin, boolean is_msd)
+    private static void applyWindows(String input_file_name, String output_file_name,
+                                     int dim, ArrayList<String> window_file_names,
+                                     boolean is_msd)
         throws Exception
     {
+        // Load byte array of data
+        Path p_input = FileSystems.getDefault().getPath("", input_file_name);
+        byte[] data_bytes = Files.readAllBytes(p_input);
+        ByteBuffer buffer = ByteBuffer.wrap(data_bytes);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
 
+        // Compute size
+        int T = data_bytes.length / (dim*4);
+        int input_data_size = T*dim;
+        int n_win = window_file_names.size();
 
-        Process p;
-        String window_string = "";
-        for (String s : window_file_names)
+        // Generate vector C
+        Float[] input_data = new Float[input_data_size];
+        for (int i=0; i<input_data_size; i++)
         {
-            window_string += s + " ";
+            input_data[i] = buffer.getFloat();
         }
 
-        // 1. Generate full command
-        String command = "perl " + this.window_script + " " + vec_size + " " + input_file_name;
-        command += " " + window_string + " > " + output_file_name;
+        // Allocate vector O
+        Float[] output_data = new Float[input_data_size * window_file_names.size()];
 
-        // 2. extraction
-        String[] cmd = {"bash", "-c", command};
-        p = Runtime.getRuntime().exec(cmd);
-        p.waitFor();
-
-
-        BufferedReader reader =
-            new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-        String line = "";
-        // while ((line = reader.readLine())!= null) {
-        //         System.out.println(line);
-        // }
-
-        StringBuilder sb = new StringBuilder();
-        reader =
-            new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-        line = "";
-        while ((line = reader.readLine())!= null) {
-            sb.append(line + "\n");
-        }
-        if (!sb.toString().isEmpty())
+        // Load window and apply it
+        ArrayList<Float[]> win_matrix = new ArrayList<Float[]>();
+        int i_win = 0;
+        for (String win_filename: window_file_names)
         {
-            throw new Exception(sb.toString());
+            // Read the file
+            BufferedReader reader =
+                new BufferedReader(new InputStreamReader(new FileInputStream(win_filename)));
+            String line = reader.readLine();
+            String[] elts = line.split(" ");
+
+            // Extract window elements
+            int size = Integer.parseInt(elts[0]);
+            if ((size % 2) != 1)
+            {
+                throw new Exception("Size need to be odd !");
+            }
+
+            Float[] win = new Float[size];
+            for (int f=1; f<=size; f++)
+                win[f-1] = Float.parseFloat(elts[f]);
+
+            // Check boundary flags
+            boolean[] check_bound = new boolean[size+1];
+            for (int j=0; j<=size; j++)
+                check_bound[j] = true;
+
+            for (int j=1; j<=size; j++)
+            {
+                if (win[j-1] != 0.0)
+                    break;
+                check_bound[j] = false;
+            }
+            for (int j=size; j>=1; j--)
+            {
+                if (win[j-1] != 0.0)
+                    break;
+                check_bound[j] = false;
+            }
+
+            // Calcul i-th coefficients
+            int nlr = (size - 1) / 2;
+            for (int t=0; t<T; t++)
+            {
+                for (int d=0; d<dim; d++)
+                {
+                    boolean boundary = false;
+                    for (int k=-nlr; k<=nlr; k++)
+                    {
+                        if (check_bound[k+nlr+1])
+                        {
+                            int l = 0;
+                            if ((t + k) < 0)
+                            {
+                                l = 0;
+                            }
+                            else if ((t + l) >= T)
+                            {
+                                l = T - 1;
+                            }
+                            else
+                            {
+                                l = t + k;
+                            }
+
+                            if ((is_msd) && (input_data[l*dim+d] == ExtractCMP.IGNORE_VALUE))
+                                boundary = true;
+                        }
+                    }
+
+                    // Normal case window
+                    if (!boundary)
+                    {
+                        output_data[t*n_win*dim + dim * i_win + d] = (float) 0.0;
+
+                        for (int k=-nlr; k<=nlr; k++)
+                        {
+                            if ((t + k) < 0)
+                            {
+                                output_data[t*n_win*dim + dim * i_win + d] += win[k+nlr] * input_data[d];
+                            }
+                            else if ((t + k) >= T)
+                            {
+                                output_data[t*n_win*dim + dim * i_win + d] += win[k+nlr] * input_data[(T-1*dim)+d];
+                            }
+                            else
+                            {
+                                System.out.println(win[k+nlr] * input_data[((t+k)*dim)+d]);
+                                output_data[t*n_win*dim + dim * i_win + d] += win[k+nlr] * input_data[((t+k)*dim)+d];
+                            }
+                        }
+
+                    }
+                    // Boundary adaptation
+                    else
+                    {
+                        output_data[t*n_win*dim + dim * i_win + d] = ExtractCMP.IGNORE_VALUE;
+                    }
+
+                }
+            }
+
+            // Now go the next windows
+            i_win++;
         }
+
+        // Saving O
+        ByteBuffer output_buffer = ByteBuffer.allocate(n_win*data_bytes.length);
+        output_buffer.order(ByteOrder.LITTLE_ENDIAN);
+        for (int v=0; v<output_data.length;v++){
+            output_buffer.putFloat(output_data[v]);
+        }
+
+        Path path = Paths.get(output_file_name);
+        byte[] output_data_bytes = output_buffer.array();
+        Files.write(path, output_data_bytes);
     }
 
+    /**
+     *  Add an HTK header to the input cmp file
+     *
+     *   @param input_file_name the input cmp file path
+     *   @param output_file_name the output cmp file with header path
+     *   @param frameshift the used frameshift in HTK format
+     *   @param framesize the number of coefficients for one frame
+     *   @param HTK_feature_type the HTK feature type information
+     */
+    public static void addHTKHeader(String input_file_name, String output_file_name,
+                                     long frameshift, short framesize, short HTK_feature_type)
+        throws IOException
+    {
+        File output = new File(output_file_name);
+        Path p_input = FileSystems.getDefault().getPath("", input_file_name);
+        byte[] data = Files.readAllBytes(p_input);
+
+        // Prepare buffer
+        long nb_frames = data.length / framesize;
+        ByteBuffer buffer = ByteBuffer.allocate((Integer.SIZE + Short.SIZE)/4);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+
+
+        // Generate header
+        System.out.println("nb_frames = " + nb_frames);
+        buffer.putInt((int) nb_frames);
+        buffer.putInt((int) frameshift);
+
+        buffer.putShort(framesize);
+        buffer.putShort(HTK_feature_type);
+
+        // Generate the output data
+        byte[] header = buffer.array();
+        byte[] output_data = new byte[header.length + data.length];
+        System.arraycopy(header, 0, output_data, 0, header.length);
+        System.arraycopy(data, 0, output_data, header.length, data.length);
+
+        Path path = Paths.get(output_file_name);
+        Files.write(path, output_data);
+    }
 
     /**
      *  Merge frame by frame two files
@@ -164,51 +293,6 @@ public class ExtractCMP extends ExtractBase
         }
     }
 
-    private void addHTKHeader(String input_file_name, String output_file_name,
-                              long frameshift, short framesize, short HTK_feature_type)
-        throws Exception
-    {
-
-        File output = new File(output_file_name);
-        Path p_input = FileSystems.getDefault().getPath("", input_file_name);
-        byte[] data = Files.readAllBytes(p_input);
-
-        long nb_frames = data.length / framesize;
-
-        Process p;
-
-        // 1. Generate full command
-        String command = "perl " + this.addhtkheader_script + " " + frameshift + " " +
-            framesize + " " + HTK_feature_type + " " + input_file_name + " > " +
-            output_file_name;
-
-        // 2. extraction
-        String[] cmd = {"bash", "-c", command};
-        p = Runtime.getRuntime().exec(cmd);
-        p.waitFor();
-
-
-        BufferedReader reader =
-            new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-        String line = "";
-        // while ((line = reader.readLine())!= null) {
-        //         System.out.println(line);
-        // }
-
-        StringBuilder sb = new StringBuilder();
-        reader =
-            new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-        line = "";
-        while ((line = reader.readLine())!= null) {
-            sb.append(line + "\n");
-        }
-        if (!sb.toString().isEmpty())
-        {
-            throw new Exception(sb.toString());
-        }
-    }
 
     /**
      *  Simple method to deal with project directories
@@ -283,7 +367,7 @@ public class ExtractCMP extends ExtractBase
             String kind = (String) cur_stream.get("kind");
             String cur_dir = (String) extToDir.get(kind);
             applyWindows(cur_dir + "/" + basename + "." + kind, tmp_filename + "." + kind,
-                         (int)vecsize, winfiles, nwin, is_msd);
+                         (int)vecsize, winfiles, is_msd);
             cur_internal_stream.put("kind", kind);
             cur_internal_stream.put("obs_file_name", tmp_filename + "." + kind);
 
