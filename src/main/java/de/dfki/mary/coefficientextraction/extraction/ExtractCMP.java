@@ -134,6 +134,7 @@ public class ExtractCMP extends ExtractBase
             {
                 for (int d=0; d<dim; d++)
                 {
+                    // MSD boundary evaluation
                     boolean boundary = false;
                     for (int k=-nlr; k<=nlr; k++)
                     {
@@ -144,7 +145,7 @@ public class ExtractCMP extends ExtractBase
                             {
                                 l = 0;
                             }
-                            else if ((t + l) >= T)
+                            else if ((t + k) >= T)
                             {
                                 l = T - 1;
                             }
@@ -171,7 +172,7 @@ public class ExtractCMP extends ExtractBase
                             }
                             else if ((t + k) >= T)
                             {
-                                output_data[t*n_win*dim + dim * i_win + d] += win[k+nlr] * input_data[(T-1*dim)+d];
+                                output_data[t*n_win*dim + dim * i_win + d] += win[k+nlr] * input_data[((T-1)*dim)+d];
                             }
                             else
                             {
