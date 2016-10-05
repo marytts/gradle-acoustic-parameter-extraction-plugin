@@ -1,9 +1,10 @@
 
-* Coefficient extraction [28%]
+* Coefficient extraction [42%]
 :PROPERTIES:
 :CATEGORY: tools
 :END:
-** TODO Using native binary operations in java and not rely on perl script for the CMP
+** DONE Using native binary operations in java and not rely on perl script for the CMP
+CLOSED: [2016-10-06 Thu 00:07]
 ** TODO See for the problem of the fft dimension when the sampling frequency is changing
 - Some values (like 2048) are hardcoded... see http://www.nguyenquyhy.com/2013/12/how-to-configure-hts-demo-with-straight-features-for-16khz-training-data/
 ** DONE Add the hsmm default coefficient extraction
