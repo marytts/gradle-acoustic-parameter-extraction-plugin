@@ -19,18 +19,11 @@ import java.nio.channels.FileChannel;
  */
 public class ExtractWorld extends ExtractBase
 {
-    private int sample_rate;
     private float frameshift;
 
     public ExtractWorld() throws Exception
     {
-        setSampleRate(48000);
         setFrameshift(5);
-    }
-
-    public void setSampleRate(int sample_rate)
-    {
-        this.sample_rate = sample_rate;
     }
 
     public void setFrameshift(float frameshift)
@@ -58,7 +51,7 @@ public class ExtractWorld extends ExtractBase
         String f0_output = extToDir.get("f0") + "/" + tokens[0] + ".f0";
 
         // 2. extraction
-        String[] cmd = {"world_analysis", input_file_name, f0_output, sp_output, ap_output};
+        String[] cmd = {"world_analysis", "-f", (new Float(this.frameshift)).toString(), input_file_name, f0_output, sp_output, ap_output};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
 
