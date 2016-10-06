@@ -39,7 +39,6 @@ class WorldProcess implements ProcessInterface
 
                 // **
                 extractor.setFrameshift(project.user_configuration.signal.frameshift)
-                extractor.setSampleRate(project.user_configuration.signal.samplerate)
 
                 // **
 
