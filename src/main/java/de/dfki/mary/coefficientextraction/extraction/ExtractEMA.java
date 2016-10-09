@@ -18,12 +18,12 @@ import java.nio.file.StandardOpenOption;
  */
 public class ExtractEMA extends ExtractBase
 {
-
-    public void extract(String input_file_name) throws Exception
+    public void extract(String input_file_name)
+        throws Exception
     {
         boolean end_header = false;
         File emaFile = new File(input_file_name);
-        ArrayList<ArrayList<Double>> frames = new ArrayList<ArrayList<Double>>();
+        ArrayList<ArrayList<Float>> frames = new ArrayList<ArrayList<Float>>();
         int size = 0;
 
         String[] cmd = {"ch_track", "-otype",  "est", emaFile.toString()};
@@ -41,13 +41,22 @@ public class ExtractEMA extends ExtractBase
             }
             else if (end_header)
             {
-                ArrayList<Double> cur_frame = new ArrayList<Double>();
+                ArrayList<Float> cur_frame = new ArrayList<Float>();
                 StringTokenizer st = new StringTokenizer(line);
                 int i=0;
                 while (st.hasMoreTokens()) {
                     String it = st.nextToken();
                     if (i >= 2)
-                        cur_frame.add(Double.parseDouble(it));
+                    {
+                        if ((it == "nan") ||  (it == "-nan"))
+                        {
+                            cur_frame.add((float) Math.log(Double.parseDouble(it)));
+                        }
+                        else
+                        {
+                            cur_frame.add(Float.NaN);
+                        }
+                    }
                     i++;
                 }
 
@@ -56,21 +65,51 @@ public class ExtractEMA extends ExtractBase
             }
         }
 
-        // Doubles to bytes
-        ByteBuffer bf = ByteBuffer.allocate(size*Double.SIZE/8); // FIXME: why this fucking 8 !
-        bf.order(ByteOrder.LITTLE_ENDIAN);
-        System.out.println("sizedouble = " + Double.SIZE/8);
-        for (ArrayList<Double> frame: frames)
+
+        BufferedReader err_reader =
+            new BufferedReader(new InputStreamReader(p.getErrorStream()));
+        while ((line = err_reader.readLine())!= null)
         {
-            for (Double sample: frame)
+            System.out.println("error = " + line);
+        }
+
+        // Floats to bytes
+        ByteBuffer bf = ByteBuffer.allocate(size*Float.SIZE/4);
+        bf.order(ByteOrder.LITTLE_ENDIAN);
+        for (int i=0; i<frames.size(); i++)
+        {
+            ArrayList<Float> frame = frames.get(i);
+            for (int j=0; j<frame.size(); j++)
             {
-                bf.putDouble(sample);
+                Float sample = frame.get(j);
+
+                // If nan => linear interpolation
+                if (Float.isNaN(sample))
+                {
+                    Float val = 0.0f;
+                    int nb = 0;
+                    if (i>0)
+                    {
+                        val += (frames.get(i-1)).get(j);
+                        nb++;
+                    }
+
+                    if (i<(frames.size()-1))
+                    {
+                        val += (frames.get(i+1)).get(j);
+                        nb++;
+                    }
+
+                    sample = val / (float) nb;
+                }
+
+                // Add float
+                bf.putFloat(sample);
             }
         }
 
         // Output
-        String[] tokens_filename = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
-        File output_file = new File(extToDir.get("ema"), tokens_filename[0]);
+        File output_file = new File(extToDir.get("ema"), (new File(input_file_name)).getName());
         Files.write(output_file.toPath(), bf.array());
 
     }

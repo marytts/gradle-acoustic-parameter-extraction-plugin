@@ -102,7 +102,7 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
 
         project.afterEvaluate {
 
-            def kinds = ["straight":new STRAIGHTProcess(), "spline":new SplineProcess(), "world":new WorldProcess()];
+            def kinds = ["ema":new EMAProcess(), "straight":new STRAIGHTProcess(), "spline":new SplineProcess(), "world":new WorldProcess()];
             kinds[project.user_configuration.settings.extraction.kind].addTasks(project)
         }
     }

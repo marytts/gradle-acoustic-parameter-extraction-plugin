@@ -27,7 +27,16 @@ class EMAProcess implements ProcessInterface
     public void addTasks(Project project)
     {
         project.task('extractEMA') {
-            inputs.files project.input_file
+            def input_file = ""
+            project.user_configuration.models.cmp.streams.each { stream ->
+                if (stream.kind == "ema") {
+                    input_file = (new File(DataFileFinder.getFilePath(stream.coeffDir))).toString() + "/" + project.basename + ".ema"
+                }
+            }
+            if (input_file.isEmpty()) {
+                throw new Exception("no ema to extract, so why being here ?")
+            }
+            inputs.files input_file
             outputs.files "$project.buildDir/ema/" + project.basename + ".ema"
 
             doLast {
@@ -39,7 +48,7 @@ class EMAProcess implements ProcessInterface
                 extToDir.put("ema".toString(), "$project.buildDir/ema".toString())
                 extractor.setDirectories(extToDir)
 
-                extractor.extract(project.input_file)
+                extractor.extract(input_file)
             }
         }
 
