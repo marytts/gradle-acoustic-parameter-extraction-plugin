@@ -1,5 +1,4 @@
-
-* Coefficient extraction [42%]
+* Coefficient extraction [57%]
 :PROPERTIES:
 :CATEGORY: tools
 :END:
@@ -12,4 +11,5 @@ CLOSED: [2016-10-06 Thu 00:07]
 ** DONE Straight to double instead of ascii
 CLOSED: [2016-09-27 Tue 14:17]
 ** TODO Define a test protocol
-** TODO Checking EMA
+** DONE Checking EMA
+CLOSED: [2016-10-09 Sun 15:32]
