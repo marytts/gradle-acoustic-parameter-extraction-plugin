@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.util.StringTokenizer;
 import java.nio.file.StandardOpenOption;
 
+import de.dfki.mary.coefficientextraction.extraction.ema.HeadCorrection;
+
 /**
  * Extract EMA coefficients and only coefficients from the full EMA file
  *
@@ -18,6 +20,10 @@ import java.nio.file.StandardOpenOption;
  */
 public class ExtractEMA extends ExtractBase
 {
+    private static final int IDX_OFFSET = 2; // Ignore the first 2 coefficients
+    private static final int CHANNEL_TOTAL_SIZE = 14; // FIXME: hardcoded sze computed from 7 channels * 2 coordinates (see HeadCorrection.java)
+    private static final int FLOAT_SIZE = Float.SIZE/8; // Float size in nb bytes...
+
     public void extract(String input_file_name)
         throws Exception
     {
@@ -46,15 +52,15 @@ public class ExtractEMA extends ExtractBase
                 int i=0;
                 while (st.hasMoreTokens()) {
                     String it = st.nextToken();
-                    if (i >= 2)
+                    if (i >= IDX_OFFSET)
                     {
-                        if ((it == "nan") ||  (it == "-nan"))
+                        if ((it.equals("nan")) ||  (it.equals("-nan")))
                         {
-                            cur_frame.add((float) Math.log(Double.parseDouble(it)));
+                            cur_frame.add(Float.NaN);
                         }
                         else
                         {
-                            cur_frame.add(Float.NaN);
+                            cur_frame.add((float)Double.parseDouble(it));
                         }
                     }
                     i++;
@@ -68,13 +74,17 @@ public class ExtractEMA extends ExtractBase
 
         BufferedReader err_reader =
             new BufferedReader(new InputStreamReader(p.getErrorStream()));
+        String error = "";
         while ((line = err_reader.readLine())!= null)
         {
-            System.out.println("error = " + line);
+            error += line;
         }
+        if (!error.isEmpty())
+            throw new Exception(error);
 
         // Floats to bytes
-        ByteBuffer bf = ByteBuffer.allocate(size*Float.SIZE/4);
+        HeadCorrection head_correction = new HeadCorrection();
+        ByteBuffer bf = ByteBuffer.allocate(frames.size()*CHANNEL_TOTAL_SIZE*FLOAT_SIZE);
         bf.order(ByteOrder.LITTLE_ENDIAN);
         for (int i=0; i<frames.size(); i++)
         {
@@ -88,23 +98,45 @@ public class ExtractEMA extends ExtractBase
                 {
                     Float val = 0.0f;
                     int nb = 0;
-                    if (i>0)
+                    int offset = 1;
+
+                    while (((i-offset) >= 0) &&
+                           (Float.isNaN(frames.get(i-offset).get(j))))
                     {
-                        val += (frames.get(i-1)).get(j);
+                        offset++;
+                    }
+                    if ((i-offset) >= 0) {
+                        val += (frames.get(i-offset)).get(j);
                         nb++;
                     }
 
-                    if (i<(frames.size()-1))
+
+                    offset = 1; // Reset offset to 1
+                    while (((i+offset) <= (frames.size()-1)) &&
+                           (Float.isNaN(frames.get(i+offset).get(j))))
                     {
-                        val += (frames.get(i+1)).get(j);
+                        offset++;
+                    }
+
+                    if ((i+offset) <= (frames.size()-1))
+                    {
+                        val += (frames.get(i+offset)).get(j);
                         nb++;
                     }
 
                     sample = val / (float) nb;
-                }
 
-                // Add float
-                bf.putFloat(sample);
+                    frame.set(j, sample);
+                }
+            }
+
+            // HeadCorrection
+            ArrayList<Float> corrected_frame = head_correction.performCorrection(frame);
+
+            // Dump frame
+            for (Float sample: corrected_frame)
+            {
+                bf.putFloat(sample); // FIXME: pb is 13.0 is imposed for now to avoid having log(0)
             }
         }
 
