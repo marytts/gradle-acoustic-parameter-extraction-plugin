@@ -83,6 +83,10 @@ public class ExtractCMP extends ExtractBase
         for (int i=0; i<input_data_size; i++)
         {
             input_data[i] = buffer.getFloat();
+            if (Float.isNaN(input_data[i]))
+            {
+                throw new Exception(input_file_name + " contains nan values! ");
+            }
         }
 
         // Allocate vector O

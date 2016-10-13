@@ -1,4 +1,4 @@
-* Coefficient extraction [57%]
+* Coefficient extraction [62%]
 :PROPERTIES:
 :CATEGORY: tools
 :END:
@@ -13,3 +13,5 @@ CLOSED: [2016-09-27 Tue 14:17]
 ** TODO Define a test protocol
 ** DONE Checking EMA
 CLOSED: [2016-10-09 Sun 15:32]
+** DONE Check NAN values and fails therefore
+CLOSED: [2016-10-13 Thu 14:40]
