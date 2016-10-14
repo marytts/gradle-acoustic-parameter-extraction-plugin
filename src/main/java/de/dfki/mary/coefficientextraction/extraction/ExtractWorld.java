@@ -43,7 +43,6 @@ public class ExtractWorld extends ExtractBase
             }
         }
 
-
         // Prepare filenames
         String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
         String ap_output = extToDir.get("ap") + "/" + tokens[0] + ".ap";

@@ -20,7 +20,7 @@ public class ExtractMGC extends ExtractBase
         private short order;
         private boolean lngain_flag;
         private boolean spectrum_flag;
-        
+
         public ExtractMGC()
         {
                 setSampleRatekHz(48f);
@@ -41,7 +41,7 @@ public class ExtractMGC extends ExtractBase
 
         private void setFreqWarp(float sampleratekHz)
         {
-                
+
                 if (sampleratekHz == 8)
                 {
                         freqwarp = 0.31f;
@@ -84,7 +84,7 @@ public class ExtractMGC extends ExtractBase
         {
                 this.gamma = gamma;
         }
-        
+
         public void setOrder(short order)
         {
                 this.order = order;
@@ -94,12 +94,12 @@ public class ExtractMGC extends ExtractBase
         {
                 this.lngain_flag = lngain_flag;
         }
-        
+
         public void setLength(short length)
         {
                 this.order = (short) (length - 1);
         }
-        
+
         public void setSampleRate(float samplerate)
         {
                 setSampleRatekHz((float)(samplerate * 0.001));
@@ -114,11 +114,13 @@ public class ExtractMGC extends ExtractBase
         public void extractFromSpectrum(String input_file_name, String output_file_name) throws Exception
         {
                 Process p;
+                String error = "0"; // "1.0E-08"; // FIXME: should be included as an option or something like that
+
                 // 1. Generate full command
                 String command = "x2x +df " + input_file_name + " |";
                 if (gamma == 0)
                 {
-                        command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e 1.0E-08 -j 0 -f 0.0 -q 3 > " + output_file_name;
+                        command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e " + error + " -j 0 -f 0.0 -q 3 > " + output_file_name;
                 }
                 else
                 {
@@ -127,29 +129,29 @@ public class ExtractMGC extends ExtractBase
                         {
                                 logGainOpt = " -l";
                         }
-                        command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e 1.0E-08 -j 0 -f 0.0 -q 3 -o 4 | ";
-                        command +=  "lpc2lsp -m " + order + logGainOpt + " -n 2048 -d 1.0E-08 -p 8 > " + output_file_name;
+                        command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e " + error + " -j 0 -f 0.0 -q 3 -o 4 | ";
+                        command +=  "lpc2lsp -m " + order + logGainOpt + " -n 2048 -d " + error + " -p 8 > " + output_file_name;
                 }
-                        
+
                 // 2. extraction
                 String[] cmd = {"bash", "-c", command};
                 p = Runtime.getRuntime().exec(cmd);
                 p.waitFor();
 
-                        
-                BufferedReader reader = 
+
+                BufferedReader reader =
                         new BufferedReader(new InputStreamReader(p.getInputStream()));
-                        
-                String line = "";			
+
+                String line = "";
                 // while ((line = reader.readLine())!= null) {
                 //         System.out.println(line);
                 // }
-                        
+
                 StringBuilder sb = new StringBuilder();
-                reader = 
+                reader =
                         new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                        
-                line = "";			
+
+                line = "";
                 while ((line = reader.readLine())!= null) {
                         sb.append(line + "\n");
                 }
@@ -157,18 +159,18 @@ public class ExtractMGC extends ExtractBase
                 {
                         throw new Exception(sb.toString());
                 }
-                
+
         }
-        
-        
+
+
         public void extractFromWav(String input_file_name, String output_file_name) throws Exception
         {
                 throw new Exception("Method extractFromWav not implemented yet");
         }
-        
+
         public void extract(String input_file_name) throws Exception
         {
-                
+
                 String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
                 String output_file_name = extToDir.get("mgc") + "/" + tokens[0] + ".mgc";
                 if (spectrum_flag)
