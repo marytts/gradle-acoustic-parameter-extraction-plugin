@@ -20,6 +20,7 @@ import java.nio.channels.FileChannel;
 public class ExtractWorld extends ExtractBase
 {
     private float frameshift;
+    private static final float MAGIC_VALUE = 32768.0f;
 
     public ExtractWorld() throws Exception
     {
@@ -101,7 +102,7 @@ public class ExtractWorld extends ExtractBase
         Process p;
 
         // 2. extraction
-        String[] cmd = {"bash", "-c", "x2x +df " + input_file_name + " | sopr -R -m 32768.0 > "+ output_file_name};
+        String[] cmd = {"bash", "-c", "x2x +df " + input_file_name + " | sopr -R -m " + MAGIC_VALUE + " > "+ output_file_name};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
 
@@ -157,8 +158,8 @@ public class ExtractWorld extends ExtractBase
         spectrumConversion(sp_tmp, sp_output);
 
         // Cleaning
-        (new File(f0_tmp)).delete();
-        (new File(ap_tmp)).delete();
-        (new File(sp_tmp)).delete();
+        // (new File(f0_tmp)).delete();
+        // (new File(ap_tmp)).delete();
+        // (new File(sp_tmp)).delete();
     }
 }
