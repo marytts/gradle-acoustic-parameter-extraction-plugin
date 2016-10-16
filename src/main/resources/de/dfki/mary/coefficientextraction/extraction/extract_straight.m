@@ -18,13 +18,13 @@ sp = sp * $norm_coef;
 
 
 f_f0 = fopen('$f0_output', 'wb')
-fwrite(f_f0, f0, 'double')
+fwrite(f_f0, f0, 'float32')
 fclose(f_f0);
 
 f_sp = fopen('$sp_output', 'wb')
-fwrite(f_sp, sp, 'double')
+fwrite(f_sp, sp, 'float32')
 fclose(f_sp);
 
 f_ap = fopen('$ap_output', 'wb')
-fwrite(f_ap, ap, 'double')
+fwrite(f_ap, ap, 'float32')
 fclose(f_ap);

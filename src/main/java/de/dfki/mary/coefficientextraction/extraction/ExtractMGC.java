@@ -115,16 +115,16 @@ public class ExtractMGC extends ExtractBase
      *
      *
      */
-    public void extractFromSpectrum(String input_file_name, String output_file_name) throws Exception
+    public void extractFromSpectrum(String input_file_name, String output_file_name)
+        throws Exception
     {
         Process p;
-        String error = "0"; // "1.0E-08"; // FIXME: should be included as an option or something like that
 
         // 1. Generate full command
-        String command = "x2x +df " + input_file_name + " |";
+        String command = "cat " + input_file_name + " |";
         if (gamma == 0)
         {
-            command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e " + error + " -j 0 -f 0.0 -q 3 > " + output_file_name;
+            command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e 1.0E-08 -j 0 -f 0.0 -q 3 > " + output_file_name;
         }
         else
         {
@@ -133,8 +133,8 @@ public class ExtractMGC extends ExtractBase
             {
                 logGainOpt = " -l";
             }
-            command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e " + error + " -j 0 -f 0.0 -q 3 -o 4 | ";
-            command +=  "lpc2lsp -m " + order + logGainOpt + " -n 2048 -d " + error + " -p 8 > " + output_file_name;
+            command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e 1.0E-08 -j 0 -f 0.0 -q 3 -o 4 | ";
+            command +=  "lpc2lsp -m " + order + logGainOpt + " -n 2048 -d 1.0E-08 -p 8 > " + output_file_name;
         }
 
         // 2. extraction

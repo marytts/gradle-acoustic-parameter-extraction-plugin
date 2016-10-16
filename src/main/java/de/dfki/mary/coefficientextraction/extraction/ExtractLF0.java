@@ -26,7 +26,7 @@ public class ExtractLF0 extends ExtractBase
        "f0 = fread(f, inf, 'float');" + System.getProperty("line.separator") +
        "fclose(f);" + System.getProperty("line.separator") +
        "" + System.getProperty("line.separator") +
-        
+
        "" + System.getProperty("line.separator") +
        "%%" + System.getProperty("line.separator") +
        "%% Linear F0 Interpolation" + System.getProperty("line.separator") +
@@ -45,7 +45,7 @@ public class ExtractLF0 extends ExtractBase
        "" + System.getProperty("line.separator") +
        "    else" + System.getProperty("line.separator") +
        "        f0Ai = f0;" + System.getProperty("line.separator") +
-       "    end" + System.getProperty("line.separator") + 
+       "    end" + System.getProperty("line.separator") +
        "" + System.getProperty("line.separator") +
        "%% Saving" + System.getProperty("line.separator") +
         "f = fopen('%s', 'wb');" + System.getProperty("line.separator") + // Output f0 filepath
@@ -54,10 +54,10 @@ public class ExtractLF0 extends ExtractBase
        "end" + System.getProperty("line.separator") +
        "fwrite(f, f0Ai, 'float');" + System.getProperty("line.separator") +
        "fclose(f);" + System.getProperty("line.separator");
-    
+
     private boolean is_interpolated;
     private float min_f0;
-    
+
     public ExtractLF0()
     {
         is_interpolated = false;
@@ -73,7 +73,7 @@ public class ExtractLF0 extends ExtractBase
     private void interpolateF0(String input_file_name, String output_file_name)
         throws Exception
     {
-        
+
         File script_temp = File.createTempFile("interp_f0", ".m");
         PrintWriter writer = new PrintWriter(script_temp.getAbsolutePath(), "UTF-8");
         writer.println(String.format(template_string, min_f0,
@@ -86,21 +86,21 @@ public class ExtractLF0 extends ExtractBase
         String[] cmd = {"bash", "-c", command};
         Process p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
-                
-        BufferedReader reader = 
+
+        BufferedReader reader =
             new BufferedReader(new InputStreamReader(p.getInputStream()));
-        
-        String line = "";			
+
+        String line = "";
         // while ((line = reader.readLine())!= null) {
         //         System.out.println(line);
         // }
-        
+
         // Error stream => throw exception if not empty
         StringBuilder sb = new StringBuilder();
-        reader = 
+        reader =
             new BufferedReader(new InputStreamReader(p.getErrorStream()));
-        
-        line = "";			
+
+        line = "";
         while ((line = reader.readLine())!= null) {
             sb.append(line + "\n");
         }
@@ -110,35 +110,35 @@ public class ExtractLF0 extends ExtractBase
         }
         script_temp.delete();
     }
-    
+
     private void generateLogF0(String input_file_name, String output_file_name)
         throws Exception
     {
-        
+
         // 2. extraction
-        String command = "x2x +df " + input_file_name + " | ";
+        String command = "cat " + input_file_name + " | ";
         command += "sopr -magic 0.0 -LN -MAGIC -1.0E+10 > " + output_file_name;
 
         String[] cmd = {"bash", "-c", command};
         Process p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
-        
-                        
-        BufferedReader reader = 
+
+
+        BufferedReader reader =
             new BufferedReader(new InputStreamReader(p.getInputStream()));
-        
-        String line = "";			
+
+        String line = "";
         // while ((line = reader.readLine())!= null) {
         //         System.out.println(line);
         // }
-        
-        
+
+
         // Error stream => throw exception if not empty
         StringBuilder sb = new StringBuilder();
-        reader = 
+        reader =
             new BufferedReader(new InputStreamReader(p.getErrorStream()));
-        
-        line = "";			
+
+        line = "";
         while ((line = reader.readLine())!= null) {
             sb.append(line + "\n");
         }

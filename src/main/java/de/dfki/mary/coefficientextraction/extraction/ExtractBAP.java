@@ -17,7 +17,7 @@ public class ExtractBAP extends ExtractBase
     private float samplerate;
     private float freqwarp;
     private short order;
-        
+
     public ExtractBAP()
     {
         setSampleRatekHz(48f);
@@ -27,7 +27,7 @@ public class ExtractBAP extends ExtractBase
 
     private void setFreqWarp(float sampleratekHz)
     {
-                
+
         if (sampleratekHz == 8f)
         {
             freqwarp = 0.31f;
@@ -65,17 +65,17 @@ public class ExtractBAP extends ExtractBase
             freqwarp = 0f; // FIXME: exception instead ?
         }
     }
-        
+
     public void setOrder(short order)
     {
         this.order = order;
     }
-        
+
     public void setLength(short length)
     {
         this.order = (short) (length - 1);
     }
-        
+
     public void setSampleRate(float samplerate)
     {
         setSampleRatekHz((float)(samplerate * 0.001));
@@ -86,38 +86,38 @@ public class ExtractBAP extends ExtractBase
         this.samplerate = samplerate;
         setFreqWarp(this.samplerate);
     }
-        
+
     public void extract(String input_file_name) throws Exception
     {
-                
+
         String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
         String output_file_name = extToDir.get("bap") + "/" + tokens[0] + ".bap";
 
         Process p;
 
         // 1. Generate full command
-        String command = "x2x +df " + input_file_name + " |";
+        String command = "cat " + input_file_name + " |";
         command += 	"mgcep -a " + freqwarp + " -m " + order + " -l 2048 -e 1.0E-08 -j 0 -f 0.0 -q 1 > " + output_file_name;
-                
+
         // 2. extraction
         String[] cmd = {"bash", "-c", command};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
-                
-                
-        BufferedReader reader = 
+
+
+        BufferedReader reader =
             new BufferedReader(new InputStreamReader(p.getInputStream()));
-                
-        String line = "";			
+
+        String line = "";
         // while ((line = reader.readLine())!= null) {
         //         System.out.println(line);
         // }
-                
+
         StringBuilder sb = new StringBuilder();
-        reader = 
+        reader =
             new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                
-        line = "";			
+
+        line = "";
         while ((line = reader.readLine())!= null) {
             sb.append(line + "\n");
         }
