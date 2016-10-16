@@ -64,7 +64,7 @@ public class ExtractWorld extends ExtractBase
         }
     }
 
-    private void f0Conversion(String input_file_name, String output_file_name)
+    private void f0Conversion(String input_file_name, String output_file_name) throws Exception
     {
         Process p;
 
@@ -96,7 +96,7 @@ public class ExtractWorld extends ExtractBase
         }
     }
 
-    private void spectrumConversion(String input_file_name, String output_file_name)
+    private void spectrumConversion(String input_file_name, String output_file_name) throws Exception
     {
         Process p;
 
