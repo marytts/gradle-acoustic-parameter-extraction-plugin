@@ -69,7 +69,7 @@ public class ExtractWorld extends ExtractBase
         Process p;
 
         // 2. extraction
-        String[] cmd = {"bash", "-c", "'x2x +df " + input_file_name + " > " + output_file_name + "'"};
+        String[] cmd = {"bash", "-c", "x2x +df " + input_file_name + " > " + output_file_name};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
 
@@ -101,7 +101,7 @@ public class ExtractWorld extends ExtractBase
         Process p;
 
         // 2. extraction
-        String[] cmd = {"bash", "-c", "' x2x +df " + input_file_name + " | sopr -R -m 32768.0 > "+ output_file_name + "'"};
+        String[] cmd = {"bash", "-c", "x2x +df " + input_file_name + " | sopr -R -m 32768.0 > "+ output_file_name};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
 
