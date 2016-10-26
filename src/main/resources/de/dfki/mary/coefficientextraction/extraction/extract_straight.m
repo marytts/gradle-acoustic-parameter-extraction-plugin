@@ -12,19 +12,19 @@ prm.F0searchUpperBound = $maxi_f0;
 [sp] = exstraightspec(x, f0, fs, prm);
 
 
-ap = ap';
-sp = sp';
+% ap = ap';
+% sp = sp';
 sp = sp * $norm_coef;
 
 
 f_f0 = fopen('$f0_output', 'wb')
-fwrite(f_f0, f0, 'float32')
+fwrite(f_f0, f0, 'float')
 fclose(f_f0);
 
 f_sp = fopen('$sp_output', 'wb')
-fwrite(f_sp, sp, 'float32')
+fwrite(f_sp, sp, 'float')
 fclose(f_sp);
 
 f_ap = fopen('$ap_output', 'wb')
-fwrite(f_ap, ap, 'float32')
+fwrite(f_ap, ap, 'float')
 fclose(f_ap);

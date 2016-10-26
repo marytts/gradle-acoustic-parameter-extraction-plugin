@@ -141,8 +141,8 @@ public class ExtractSTRAIGHT extends ExtractBase
         VelocityContext context = new VelocityContext();
         context.put("straight_path", this.straight_path);
         context.put("frameshift", this.frameshift);
-        context.put("mini_F0", this.mini_F0);
-        context.put("maxi_F0", this.maxi_F0);
+        context.put("mini_f0", this.mini_F0);
+        context.put("maxi_f0", this.maxi_F0);
         context.put("norm_coef", norm_coef);
         context.put("input_file_name", input_file_name);
         context.put("f0_output", f0_output);
@@ -214,6 +214,6 @@ public class ExtractSTRAIGHT extends ExtractBase
         }
 
         // 3. clean
-        script_file.delete();
+        // script_file.delete();
     }
 }

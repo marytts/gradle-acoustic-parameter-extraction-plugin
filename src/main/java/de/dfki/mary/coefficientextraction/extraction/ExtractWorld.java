@@ -158,8 +158,8 @@ public class ExtractWorld extends ExtractBase
         spectrumConversion(sp_tmp, sp_output);
 
         // Cleaning
-        // (new File(f0_tmp)).delete();
-        // (new File(ap_tmp)).delete();
-        // (new File(sp_tmp)).delete();
+        (new File(f0_tmp)).delete();
+        (new File(ap_tmp)).delete();
+        (new File(sp_tmp)).delete();
     }
 }

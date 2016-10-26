@@ -28,7 +28,9 @@ class WorldProcess implements ProcessInterface
     {
         project.task('extractWorld') {
             inputs.files project.input_file
-            outputs.files "$project.buildDir/f0/" + project.basename + ".f0", "$project.buildDir/ap/" + project.basename + ".ap", "$project.buildDir/sp/" + project.basename + ".sp"
+            outputs.files "$project.buildDir/f0/" + project.basename + ".f0",
+            "$project.buildDir/ap/" + project.basename + ".ap",
+            "$project.buildDir/sp/" + project.basename + ".sp"
 
             doLast {
                 (new File("$project.buildDir/ap")).mkdirs()
