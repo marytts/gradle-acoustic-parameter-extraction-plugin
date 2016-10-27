@@ -205,8 +205,8 @@ class STRAIGHTEMAProcess implements ProcessInterface
 
             ["MGC", "LF0", "AP", "EMA"].each { kind ->
                 dependsOn.add("extract" + kind.toUpperCase().toString)
-                extToDir.put(kind.toLowerCase().toString(),
-                             ("$project.buildDir/" + kind.toLowerCase()).toString())
+                extToDir.put(kind.toLowerCase(),
+                             ("$project.buildDir/" + kind.toLowerCase()))
             }
 
             doLast {
