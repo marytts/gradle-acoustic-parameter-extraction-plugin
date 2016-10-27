@@ -139,9 +139,9 @@ class SplineProcess implements ProcessInterface
             extToDir.put("cmp".toString(), "$project.buildDir/cmp".toString())
 
             ["SPLINE"].each  { kind ->
-                dependsOn.add("extract" + kind.toUpperCase().toString)
+                dependsOn.add("extract" + kind.toUpperCase().toString())
                 extToDir.put(kind.toLowerCase().toString(),
-                             ("$project.buildDir/" + kind.toLowerCase()).toString())
+                             (("$project.buildDir/" + kind.toLowerCase()).toString()))
             }
 
             doLast {

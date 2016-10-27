@@ -178,9 +178,9 @@ class STRAIGHTProcess implements ProcessInterface
             extToDir.put("cmp".toString(), "$project.buildDir/cmp".toString())
 
             ["MGC", "LF0", "AP"].each { kind ->
-                dependsOn.add("extract" + kind.toUpperCase().toString)
+                dependsOn.add("extract" + kind.toUpperCase().toString())
                 extToDir.put(kind.toLowerCase().toString(),
-                             ("$project.buildDir/" + kind.toLowerCase()).toString())
+                             (("$project.buildDir/" + kind.toLowerCase()).toString()))
             }
 
             doLast {

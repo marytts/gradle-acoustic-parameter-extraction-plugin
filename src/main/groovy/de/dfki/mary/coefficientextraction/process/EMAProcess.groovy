@@ -63,9 +63,9 @@ class EMAProcess implements ProcessInterface
             extToDir.put("cmp".toString(), "$project.buildDir/cmp".toString())
 
             ["EMA"].each  { kind ->
-                dependsOn.add("extract" + kind.toUpperCase().toString)
+                dependsOn.add("extract" + kind.toUpperCase())
                 extToDir.put(kind.toLowerCase().toString(),
-                             ("$project.buildDir/" + kind.toLowerCase()).toString())
+                             (("$project.buildDir/" + kind.toLowerCase()).toString()))
             }
 
             doLast {
