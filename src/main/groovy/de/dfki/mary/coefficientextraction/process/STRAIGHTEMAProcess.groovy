@@ -21,7 +21,7 @@ import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.xml.*
 
-class STRAIGHTProcess implements ProcessInterface
+class STRAIGHTEMAProcess implements ProcessInterface
 {
     // FIXME: where filename is defined !
     public void addTasks(Project project)
