@@ -165,7 +165,7 @@ class WorldProcess implements ProcessInterface
             def extToDir = new Hashtable<String, String>()
             extToDir.put("cmp".toString(), "$project.buildDir/cmp".toString())
 
-            project.user_configuration.models.cmp.streams.each { stream ->
+            ["MGC", "LF0", "BAP"].each { stream ->
                 dependsOn.add("extract" + stream.kind.toUpperCase())
                 extToDir.put(stream.kind.toLowerCase().toString(),
                              ("$project.buildDir/" + stream.kind.toLowerCase()).toString())
