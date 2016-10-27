@@ -203,7 +203,7 @@ class STRAIGHTEMAProcess implements ProcessInterface
             def extToDir = new Hashtable<String, String>()
             extToDir.put("cmp".toString(), "$project.buildDir/cmp".toString())
 
-            ["MGC", "LF0", "AP", "EMA"].each { kind ->
+            ["MGC", "LF0", "BAP", "EMA"].each { kind ->
                 dependsOn.add("extract" + kind.toUpperCase().toString())
                 extToDir.put(kind.toLowerCase().toString(),
                              (("$project.buildDir/" + kind.toLowerCase()).toString()))
