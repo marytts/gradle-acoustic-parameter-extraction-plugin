@@ -6,8 +6,10 @@ import java.util.ArrayList;
 
 public class HeadCorrection {
 
+    private static final int NB_POS = 3;
+
     // Useful channel (T3, T2, T1, ref, jaw, upperlip, lowerlip)
-    private static final int[] CHANNEL_LIST = {0, 8, 16, 24, 32, 64, 70};
+    private static final int[] CHANNEL_LIST = {0, 8, 16, 24, 32, 64, 72};
 
     // Indexes of the reference
     private static final int FRONT_INDEX = 40; // actually named "nose" in mngu0
@@ -42,7 +44,7 @@ public class HeadCorrection {
 
 	public HeadCorrection()
     {
-		this.rotation = new SimpleMatrix(3, 3);
+		this.rotation = new SimpleMatrix(NB_POS, NB_POS);
 	}
 
 
@@ -83,7 +85,7 @@ public class HeadCorrection {
 		SimpleMatrix zAxis = normalize(cross(frontToLeft, xAxis));
 		SimpleMatrix yAxis = normalize(cross(xAxis, zAxis));
 
-        for (int column=0; column <2; column++)
+        for (int column=0; column <NB_POS; column++)
         {
 			this.rotation.set(0, column, xAxis.get(column, 0));
             this.rotation.set(1, column, yAxis.get(column, 0));
@@ -103,7 +105,7 @@ public class HeadCorrection {
 			SimpleMatrix shiftedPosition = position.minus(this.origin);
 			SimpleMatrix transformedPosition = this.rotation.mult(shiftedPosition);
 
-            for (int j=0; j<transformedPosition.numRows()-1; j++) // FIXME: for now ignore z !
+            for (int j=0; j<transformedPosition.numRows(); j++) // FIXME: for now ignore z !
             {
                 results.add((float) transformedPosition.get(j, 0));
             }
@@ -115,8 +117,8 @@ public class HeadCorrection {
 	// helper method for getting the position of the given channel at a specific time
     private SimpleMatrix getPosition(ArrayList<Float> frame, int start_index)
     {
-        SimpleMatrix output = new SimpleMatrix(3, 1);
-        for (int i=0;i<2;i++)
+        SimpleMatrix output = new SimpleMatrix(NB_POS, 1);
+        for (int i=0;i<NB_POS;i++)
         {
             output.set(i, 0, frame.get(start_index+i));
         }
@@ -127,7 +129,7 @@ public class HeadCorrection {
 	// helper method for computing the cross product
 	private SimpleMatrix cross(SimpleMatrix u, SimpleMatrix v)
     {
-		SimpleMatrix  result = new SimpleMatrix(3, 1);
+		SimpleMatrix  result = new SimpleMatrix(NB_POS, 1);
 
 		// u_2 * v_3 - u_3 * v_2
 		result.set(0, 0, u.get(1) * v.get(2) - u.get(2) * v.get(1) );

@@ -21,7 +21,7 @@ import de.dfki.mary.coefficientextraction.extraction.ema.HeadCorrection;
 public class ExtractEMA extends ExtractBase
 {
     private static final int IDX_OFFSET = 2; // Ignore the first 2 coefficients
-    private static final int CHANNEL_TOTAL_SIZE = 14; // FIXME: hardcoded sze computed from 7 channels * 2 coordinates (see HeadCorrection.java)
+    private static final int CHANNEL_TOTAL_SIZE = 7*3; // FIXME: hardcoded size computed from 7 channels * 2 coordinates (see HeadCorrection.java)
     private static final int FLOAT_SIZE = Float.SIZE/8; // Float size in nb bytes...
 
     public void extract(String input_file_name)
@@ -93,7 +93,7 @@ public class ExtractEMA extends ExtractBase
             {
                 Float sample = frame.get(j);
 
-                // If nan => linear interpolation
+                // If nan => interpolation
                 if (Float.isNaN(sample))
                 {
                     Float val = 0.0f;
@@ -136,7 +136,7 @@ public class ExtractEMA extends ExtractBase
             // Dump frame
             for (Float sample: corrected_frame)
             {
-                bf.putFloat(sample); // FIXME: pb is 13.0 is imposed for now to avoid having log(0)
+                bf.putFloat(sample);
             }
         }
 
