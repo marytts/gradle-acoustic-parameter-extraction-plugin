@@ -24,6 +24,11 @@ public class ExtractEMA extends ExtractBase
     private static final int CHANNEL_TOTAL_SIZE = 7*3; // FIXME: hardcoded size computed from 7 channels * 2 coordinates (see HeadCorrection.java)
     private static final int FLOAT_SIZE = Float.SIZE/8; // Float size in nb bytes...
 
+    // Useful channel (T3, T2, T1, ref, jaw, upperlip, lowerlip)
+    private static final int[] CHANNEL_LIST = {0, 8, 16, 24, 32, 64, 72};
+
+
+
     public void extract(String input_file_name)
         throws Exception
     {
@@ -83,11 +88,11 @@ public class ExtractEMA extends ExtractBase
             throw new Exception(error);
 
         // Floats to bytes
-        HeadCorrection head_correction = new HeadCorrection();
         ByteBuffer bf = ByteBuffer.allocate(frames.size()*CHANNEL_TOTAL_SIZE*FLOAT_SIZE);
         bf.order(ByteOrder.LITTLE_ENDIAN);
         for (int i=0; i<frames.size(); i++)
         {
+            // Load frame
             ArrayList<Float> frame = frames.get(i);
             for (int j=0; j<frame.size(); j++)
             {
@@ -130,19 +135,14 @@ public class ExtractEMA extends ExtractBase
                 }
             }
 
-            // HeadCorrection
-            ArrayList<Float> corrected_frame = head_correction.performCorrection(frame);
-
-            // Dump frame
-            for (Float sample: corrected_frame)
-            {
-                bf.putFloat(sample);
-            }
+            // Extract desired channels
+            for (int c=0; c<CHANNEL_LIST.length;c++)
+                for (int j=0; j<3; j++)
+                    bf.putFloat( frame.get(CHANNEL_LIST[c]+j));
         }
 
         // Output
         File output_file = new File(extToDir.get("ema"), (new File(input_file_name)).getName());
         Files.write(output_file.toPath(), bf.array());
-
     }
 }
