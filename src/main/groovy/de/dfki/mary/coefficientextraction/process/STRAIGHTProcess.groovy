@@ -167,29 +167,14 @@ class STRAIGHTProcess implements ProcessInterface
             }
         }
 
+
         /**
-         * CMP generation task
+         * extraction generic task
          */
-        project.task('generateCMP') {
-            (new File("$project.buildDir/cmp")).mkdirs()
-            outputs.files "$project.buildDir/cmp" + project.basename + ".cmp"
-
-            def extToDir = new Hashtable<String, String>()
-            extToDir.put("cmp".toString(), "$project.buildDir/cmp".toString())
-
-            ["MGC", "LF0", "BAP"].each { kind ->
-                dependsOn.add("extract" + kind.toUpperCase().toString())
-                extToDir.put(kind.toLowerCase().toString(),
-                             (("$project.buildDir/" + kind.toLowerCase()).toString()))
-            }
-
-            doLast {
-
-                def extractor = new ExtractCMP(System.getProperty("configuration"))
-                extractor.setDirectories(extToDir)
-                extractor.extract("$project.basename")
-            }
-
+        project.task('extract') {
+            dependsOn.add("extractMGC")
+            dependsOn.add("extractLF0")
+            dependsOn.add("extractBAP")
         }
     }
 }

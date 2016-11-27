@@ -22,7 +22,6 @@ import groovy.json.JsonSlurper
 import groovy.xml.*
 
 class CoefficientExtractionPlugin implements Plugin<Project> {
-
     @Override
     void apply(Project project) {
         project.plugins.apply JavaPlugin
@@ -32,7 +31,7 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
 
         // Load configuration
         def slurper = new JsonSlurper()
-        def config_file =  new File(System.getProperty("configuration"))
+        def config_file = project.rootProject.ext.config_file
         def config = slurper.parseText( config_file.text )
 
         // Adapt pathes
@@ -55,13 +54,11 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
         }
 
         project.ext {
-            maryttsVersion = '5.1.2'
 
             // User configuration
             user_configuration = config;
 
             trained_files = new HashMap()
-
 
             // Nb processes
             nb_proc = nb_proc_local
