@@ -20,14 +20,22 @@ import de.dfki.mary.coefficientextraction.extraction.ema.HeadCorrection;
  */
 public class ExtractEMA extends ExtractBase
 {
-    private static final int IDX_OFFSET = 2; // Ignore the first 2 coefficients
-    private static final int CHANNEL_TOTAL_SIZE = 7*3; // FIXME: hardcoded size computed from 7 channels * 2 coordinates (see HeadCorrection.java)
+    private static final int DEFAULT_VECTOR_SIZE = 21;
+    private int[] channels;
+    private int idx_offset;
+    private int vector_size;
     private static final int FLOAT_SIZE = Float.SIZE/8; // Float size in nb bytes...
 
-    // Useful channel (T3, T2, T1, ref, jaw, upperlip, lowerlip)
-    private static final int[] CHANNEL_LIST = {0, 8, 16, 24, 32, 64, 72};
+    public ExtractEMA(int[] channels) {
+        setChannels(channels);
+        idx_offset = 2; // FIXME: bad name
+    }
 
-
+    public void setChannels(int[] channels)
+    {
+        this.channels = channels;
+        vector_size = channels.length * (idx_offset+1);
+    }
 
     public void extract(String input_file_name)
         throws Exception
@@ -57,7 +65,7 @@ public class ExtractEMA extends ExtractBase
                 int i=0;
                 while (st.hasMoreTokens()) {
                     String it = st.nextToken();
-                    if (i >= IDX_OFFSET)
+                    if (i >= idx_offset)
                     {
                         if ((it.equals("nan")) ||  (it.equals("-nan")))
                         {
@@ -88,7 +96,7 @@ public class ExtractEMA extends ExtractBase
             throw new Exception(error);
 
         // Floats to bytes
-        ByteBuffer bf = ByteBuffer.allocate(frames.size()*CHANNEL_TOTAL_SIZE*FLOAT_SIZE);
+        ByteBuffer bf = ByteBuffer.allocate(frames.size()*DEFAULT_VECTOR_SIZE*FLOAT_SIZE);
         bf.order(ByteOrder.LITTLE_ENDIAN);
         for (int i=0; i<frames.size(); i++)
         {
@@ -136,9 +144,9 @@ public class ExtractEMA extends ExtractBase
             }
 
             // Extract desired channels
-            for (int c=0; c<CHANNEL_LIST.length;c++)
+            for (int c=0; c<channels.length;c++)
                 for (int j=0; j<3; j++)
-                    bf.putFloat( frame.get(CHANNEL_LIST[c]+j));
+                    bf.putFloat( frame.get(channels[c]+j));
         }
 
         // Output

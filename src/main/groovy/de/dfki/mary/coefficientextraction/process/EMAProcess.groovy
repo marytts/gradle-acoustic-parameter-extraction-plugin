@@ -28,9 +28,16 @@ class EMAProcess implements ProcessInterface
     {
         project.task('extractEMA') {
             def input_file = ""
+            def channel_list = []
             project.user_configuration.models.cmp.streams.each { stream ->
                 if (stream.kind == "ema") {
                     input_file = (new File(DataFileFinder.getFilePath(stream.coeffDir))).toString() + "/" + project.basename + ".ema"
+
+                    // Check if channels are given
+                    if ((stream["parameters"]) && (stream.parameters["channels"])) {
+                        channel_list = stream.parameters["channels"]
+                    }
+
                 }
             }
             if (input_file.isEmpty()) {
@@ -42,7 +49,19 @@ class EMAProcess implements ProcessInterface
             doLast {
                 (new File("$project.buildDir/ema")).mkdirs()
 
-                def extractor = new ExtractEMA()
+                int[] channels;
+                if (channel_list)
+                {
+                    channels = new int[channel_list.size()]
+                    channel_list.eachWithIndex{c,i ->
+                        channels[i] = c.intValue()
+                    }
+                }
+                else
+                {
+                    channels = [0, 8, 16, 24, 32, 64, 72];
+                }
+                def extractor = new ExtractEMA(channels)
 
                 def extToDir = new Hashtable<String, String>()
                 extToDir.put("ema".toString(), "$project.buildDir/ema".toString())
@@ -60,3 +79,10 @@ class EMAProcess implements ProcessInterface
         }
     }
 }
+
+
+
+        // // default channels (T3, T2, T1, ref, jaw, upperlip, lowerlip)
+        //
+        // idx_offset = 2; // FIXME: bad name
+        // vector_size = channels.length * (idx_offset+1);
