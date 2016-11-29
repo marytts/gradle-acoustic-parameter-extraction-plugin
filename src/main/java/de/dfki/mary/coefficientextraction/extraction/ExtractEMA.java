@@ -34,7 +34,7 @@ public class ExtractEMA extends ExtractBase
     public void setChannels(int[] channels)
     {
         this.channels = channels;
-        vector_size = channels.length * (idx_offset+1);
+        vector_size = channels.length * 3;
     }
 
     public void extract(String input_file_name)
@@ -96,7 +96,7 @@ public class ExtractEMA extends ExtractBase
             throw new Exception(error);
 
         // Floats to bytes
-        ByteBuffer bf = ByteBuffer.allocate(frames.size()*DEFAULT_VECTOR_SIZE*FLOAT_SIZE);
+        ByteBuffer bf = ByteBuffer.allocate(frames.size()*vector_size*FLOAT_SIZE);
         bf.order(ByteOrder.LITTLE_ENDIAN);
         for (int i=0; i<frames.size(); i++)
         {
