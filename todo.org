@@ -1,4 +1,4 @@
-* Coefficient extraction [55%]
+* Coefficient extraction [50%]
 :PROPERTIES:
 :CATEGORY: tools
 :END:
@@ -15,4 +15,5 @@ CLOSED: [2016-10-09 Sun 15:32]
 ** DONE Check NAN values and fails therefore
 CLOSED: [2016-10-13 Thu 14:40]
 ** TODO Adding option for the periodogram error
-** TODO Define a test protocoùl
+** TODO Define a test protocol
+** TODO Proper deal with the interpolate F0 part
