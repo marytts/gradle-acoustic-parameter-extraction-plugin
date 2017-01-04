@@ -18,9 +18,12 @@ public class ExtractVUV extends ExtractBase
     {
     }
 
-    private void generateLogF0(String input_file_name, String output_file_name)
-        throws Exception
+    public void extract(String input_file_name) throws Exception
     {
+        // Extract VUV from LF0
+        String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
+        String output_file_name = extToDir.get("vuv") + "/" + tokens[0] + ".vuv";
+
 
         // 2. extraction
         String command = "cat " + input_file_name + " | ";
@@ -53,12 +56,5 @@ public class ExtractVUV extends ExtractBase
         {
             throw new Exception(sb.toString());
         }
-    }
-
-    public void extract(String input_file_name) throws Exception
-    {
-        // Extract logF0 if wanted
-        String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
-        String output_file_name = extToDir.get("vuv") + "/" + tokens[0] + ".vuv";
     }
 }
