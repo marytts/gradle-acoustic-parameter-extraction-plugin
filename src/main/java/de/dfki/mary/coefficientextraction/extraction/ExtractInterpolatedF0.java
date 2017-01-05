@@ -64,7 +64,7 @@ public class ExtractInterpolatedF0 extends ExtractBase
         {
             if (input_data[t] == LOGF0)
             {
-                int shift = t;
+                int shift = t + 1;
                 while ((shift < T) && (input_data[shift] == LOGF0))
                 {
                     shift++;
@@ -94,10 +94,10 @@ public class ExtractInterpolatedF0 extends ExtractBase
                 else
                 {
                     float next = input_data[shift];
-                    float step = (next - previous) / (shift-t); // y = a.x + (b=0)
+                    float step = (next - previous) / (shift - t + 1); // y = a.x + (b=0)
                     int cur_t = t;
                     for (; t<shift; t++)
-                        input_data[t] = input_data[t-1] + step * (t - cur_t + 1);
+                        input_data[t] = input_data[t-1] + step;
                 }
             }
 
