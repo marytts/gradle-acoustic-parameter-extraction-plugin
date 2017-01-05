@@ -186,6 +186,25 @@ class STRAIGHTDNNProcess implements ProcessInterface
             }
         }
 
+        project.task('extractInterpolatedF0'){
+            inputs.files "$project.buildDir/lf0/" + project.basename + ".lf0"
+            outputs.files "$project.buildDir/interpolated_lf0/" + project.basename + ".lf0"
+
+            dependsOn.add("extractLF0")
+
+            doLast {
+                (new File("$project.buildDir/vuv")).mkdirs()
+                def extractor = new ExtractVUV()
+
+                def extToDir = new Hashtable<String, String>()
+                extToDir.put("interpolated_lf0".toString(), "$project.buildDir/interpolated_lf0".toString())
+                extractor.setDirectories(extToDir)
+                extractor.extract("$project.buildDir/lf0/" + project.basename + ".lf0")
+
+            }
+        }
+
+
 
         /**
          * extraction generic task
@@ -194,6 +213,7 @@ class STRAIGHTDNNProcess implements ProcessInterface
             dependsOn.add("extractMGC")
             dependsOn.add("extractLF0")
             dependsOn.add("extractVUV")
+            dependsOn.add("extractInterpolatedF0")
             dependsOn.add("extractBAP")
         }
     }
