@@ -193,8 +193,8 @@ class STRAIGHTDNNProcess implements ProcessInterface
             dependsOn.add("extractLF0")
 
             doLast {
-                (new File("$project.buildDir/vuv")).mkdirs()
-                def extractor = new ExtractVUV()
+                (new File("$project.buildDir/interpolated_lf0")).mkdirs()
+                def extractor = new ExtractInterpolatedF0()
 
                 def extToDir = new Hashtable<String, String>()
                 extToDir.put("interpolated_lf0".toString(), "$project.buildDir/interpolated_lf0".toString())
