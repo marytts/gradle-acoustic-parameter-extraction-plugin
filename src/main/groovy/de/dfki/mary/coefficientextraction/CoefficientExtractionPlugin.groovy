@@ -106,6 +106,7 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
             "spline":       new SplineProcess(),
             "world":        new WorldProcess(),
             "straightema":  new STRAIGHTEMAProcess(),
+            "straightemadnn":  new STRAIGHTEMADNNProcess(),
             "weight":       new WEIGHTProcess()
             ];
             kinds[project.user_configuration.settings.extraction.kind].addTasks(project)
