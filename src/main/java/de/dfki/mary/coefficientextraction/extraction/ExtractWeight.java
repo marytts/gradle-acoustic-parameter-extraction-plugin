@@ -26,10 +26,17 @@ import org.json.simple.parser.JSONParser;
 public class ExtractWeight extends ExtractBase
 {
 
-    private static final int NB_WEIGHTS = 13;
+    private int order_weight;
     private static final int FLOAT_SIZE = Float.SIZE/8; // Float size in nb bytes...
 
 
+    public ExtractWeight() {
+        setWeightOrder(12);
+    }
+
+    public void setWeightOrder(int order) {
+        order_weight = order;
+    }
 
     public void extract(String input_file_name)
         throws Exception
@@ -38,7 +45,7 @@ public class ExtractWeight extends ExtractBase
         JSONParser parser = new JSONParser();
         JSONArray frames = (JSONArray) parser.parse(new FileReader(input_file_name));
 
-        ByteBuffer bf = ByteBuffer.allocate(frames.size()*NB_WEIGHTS*FLOAT_SIZE);
+        ByteBuffer bf = ByteBuffer.allocate(frames.size()*(order_weight+1)*FLOAT_SIZE);
         bf.order(ByteOrder.LITTLE_ENDIAN);
 
         for (Object frame: frames)

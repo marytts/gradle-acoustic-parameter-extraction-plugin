@@ -20,7 +20,6 @@ import de.dfki.mary.coefficientextraction.extraction.ema.HeadCorrection;
  */
 public class ExtractEMA extends ExtractBase
 {
-    private static final int DEFAULT_VECTOR_SIZE = 21;
     private int[] channels;
     private int idx_offset;
     private int vector_size;

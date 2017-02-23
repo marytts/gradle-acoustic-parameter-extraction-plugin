@@ -34,8 +34,8 @@ class EMAProcess implements ProcessInterface
                     input_file = (new File(DataFileFinder.getFilePath(stream.coeffDir))).toString() + "/" + project.basename + ".ema"
 
                     // Check if channels are given
-                    if ((stream["parameters"]) && (stream.parameters["channels"])) {
-                        channel_list = stream.parameters["channels"]
+                    if ((stream["parameters"]) && (stream.parameters["channel_ids"])) {
+                        channel_list = stream.parameters["channel_ids"]
                     }
 
                 }
@@ -79,10 +79,3 @@ class EMAProcess implements ProcessInterface
         }
     }
 }
-
-
-
-        // // default channels (T3, T2, T1, ref, jaw, upperlip, lowerlip)
-        //
-        // idx_offset = 2; // FIXME: bad name
-        // vector_size = channels.length * (idx_offset+1);

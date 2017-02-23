@@ -28,9 +28,13 @@ class WEIGHTProcess implements ProcessInterface
     {
         project.task('extractWEIGHT') {
             def input_file = ""
+            def order = 0
             project.user_configuration.models.cmp.streams.each { stream ->
                 if (stream.kind == "weight") {
-                    input_file = (new File(DataFileFinder.getFilePath(stream.coeffDir))).toString() + "/" + project.basename + "." + stream.kind
+                    input_file = (new File(DataFileFinder.getFilePath(stream.coeffDir))).toString() + "/" + project.basename + ".json" // FIXME: harcoded
+                    if (stream.order) {
+                        order = stream.order
+                    }
                 }
             }
 
@@ -41,9 +45,55 @@ class WEIGHTProcess implements ProcessInterface
                 (new File("$project.buildDir/weight")).mkdirs()
 
                 def extractor = new ExtractWeight()
+                extractor.setWeightOrder(order)
 
                 def extToDir = new Hashtable<String, String>()
                 extToDir.put("weight".toString(), "$project.buildDir/weight".toString())
+                extractor.setDirectories(extToDir)
+
+                extractor.extract(input_file)
+            }
+        }
+
+        project.task('extractEMA') {
+            def input_file = ""
+            def channel_list = []
+            project.user_configuration.models.cmp.streams.each { stream ->
+                if (stream.kind == "weight") {
+                    // FIXME: hardcoded
+                    input_file = (new File(DataFileFinder.getFilePath("ema"))).toString() + "/" + project.basename + ".ema" // FIXME: hardcoded
+
+                    // Check if channels are given
+                    if ((stream["parameters"]) && (stream.parameters["channel_ids"])) {
+                        channel_list = stream.parameters["channel_ids"]
+                    }
+
+                }
+            }
+            if (input_file.isEmpty()) {
+                throw new Exception("no ema to extract, so why being here ?")
+            }
+            inputs.files input_file
+            outputs.files "$project.buildDir/ema/" + project.basename + ".ema"
+
+            doLast {
+                (new File("$project.buildDir/ema")).mkdirs()
+                int[] channels;
+                if (channel_list)
+                {
+                    channels = new int[channel_list.size()]
+                    channel_list.eachWithIndex{c,i ->
+                        channels[i] = c.intValue()
+                    }
+                }
+                else
+                {
+                    channels = [0, 8, 16, 24, 32, 64, 72];
+                }
+                def extractor = new ExtractEMA(channels)
+
+                def extToDir = new Hashtable<String, String>()
+                extToDir.put("ema".toString(), "$project.buildDir/ema".toString())
                 extractor.setDirectories(extToDir)
 
                 extractor.extract(input_file)
@@ -56,6 +106,7 @@ class WEIGHTProcess implements ProcessInterface
          */
         project.task('extract') {
             dependsOn.add("extractWEIGHT")
+            dependsOn.add("extractEMA")
         }
     }
 }
