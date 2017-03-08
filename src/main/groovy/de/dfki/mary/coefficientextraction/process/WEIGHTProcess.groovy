@@ -64,8 +64,8 @@ class WEIGHTProcess implements ProcessInterface
                     input_file = (new File(DataFileFinder.getFilePath("ema"))).toString() + "/" + project.basename + ".ema" // FIXME: hardcoded
 
                     // Check if channels are given
-                    if ((stream["parameters"]) && (stream.parameters["channel_ids"])) {
-                        channel_list = stream.parameters["channel_ids"]
+                    if ((stream["parameters"]) && (stream.parameters["channels"])) {
+                        channel_list = stream.parameters["channels"]
                     }
 
                 }

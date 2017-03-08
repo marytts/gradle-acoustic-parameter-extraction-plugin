@@ -58,7 +58,9 @@ public class ExtractWeight extends ExtractBase
         }
 
         // Output
-        File output_file = new File(extToDir.get("weight"), (new File(input_file_name)).getName());
+        // FIXME: problem extension is encoded
+        String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
+        File output_file = new File(extToDir.get("weight"), tokens[0] + ".weight");
         Files.write(output_file.toPath(), bf.array());
     }
 }
