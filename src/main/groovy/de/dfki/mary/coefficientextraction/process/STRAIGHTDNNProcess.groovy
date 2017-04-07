@@ -27,18 +27,20 @@ class STRAIGHTDNNProcess implements ProcessInterface
     public void addTasks(Project project)
     {
         project.task('extractSTRAIGHT') {
-            inputs.files project.input_file
+            dependsOn.add("configurationExtraction")
+            inputs.files project.configurationExtraction.input_file
             outputs.files "$project.buildDir/f0/" + project.basename + ".f0", "$project.buildDir/ap/" + project.basename + ".ap", "$project.buildDir/sp/" + project.basename + ".sp"
+
             doLast {
                 (new File("$project.buildDir/ap")).mkdirs()
                 (new File("$project.buildDir/sp")).mkdirs()
                 (new File("$project.buildDir/f0")).mkdirs()
                 (new File("$project.buildDir/lf0")).mkdirs()
 
-                def extractor = new ExtractSTRAIGHT(project.user_configuration.path.straight)
+                def extractor = new ExtractSTRAIGHT(project.configurationExtraction.user_configuration.path.straight)
 
                 // **
-                project.user_configuration.models.cmp.streams.each { stream ->
+                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
                     if (stream.kind ==  "lf0") {
                         if (stream.parameters.lower_f0){
                             extractor.setMinimumF0(stream.parameters.lower_f0)
@@ -48,8 +50,8 @@ class STRAIGHTDNNProcess implements ProcessInterface
                         }
                     }
                 }
-                extractor.setFrameshift(project.user_configuration.signal.frameshift)
-                extractor.setSampleRate(project.user_configuration.signal.samplerate)
+                extractor.setFrameshift(project.configurationExtraction.user_configuration.signal.frameshift)
+                extractor.setSampleRate(project.configurationExtraction.user_configuration.signal.samplerate)
 
                 // **
 
@@ -60,7 +62,7 @@ class STRAIGHTDNNProcess implements ProcessInterface
                 extToDir.put("lf0".toString(), "$project.buildDir/lf0".toString())
                 extractor.setDirectories(extToDir)
 
-                extractor.extract(project.input_file)
+                extractor.extract(project.configurationExtraction.input_file)
             }
         }
 
@@ -81,14 +83,14 @@ class STRAIGHTDNNProcess implements ProcessInterface
                 def extractor = new ExtractBAP()
 
                 // **
-                project.user_configuration.models.cmp.streams.each { stream ->
+                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
                     if (stream.kind ==  "bap") {
                         if (stream.order){
                             extractor.setOrder(stream.order.shortValue())
                         }
                     }
                 }
-                extractor.setSampleRate(project.user_configuration.signal.samplerate)
+                extractor.setSampleRate(project.configurationExtraction.user_configuration.signal.samplerate)
 
                 def extToDir = new Hashtable<String, String>()
                 extToDir.put("bap".toString(), "$project.buildDir/bap".toString())
@@ -115,7 +117,7 @@ class STRAIGHTDNNProcess implements ProcessInterface
                 def extractor = new ExtractMGC()
 
                 // **
-                project.user_configuration.models.cmp.streams.each { stream ->
+                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
                     if (stream.kind ==  "mgc") {
                         if (stream.order){
                             extractor.setOrder(stream.order.shortValue())
@@ -128,7 +130,7 @@ class STRAIGHTDNNProcess implements ProcessInterface
                         }
                     }
                 }
-                extractor.setSampleRate(project.user_configuration.signal.samplerate)
+                extractor.setSampleRate(project.configurationExtraction.user_configuration.signal.samplerate)
 
                 // **
                 def extToDir = new Hashtable<String, String>()
@@ -151,7 +153,7 @@ class STRAIGHTDNNProcess implements ProcessInterface
                 (new File("$project.buildDir/lf0")).mkdirs()
                 def extractor = new ExtractLF0()
 
-                project.user_configuration.models.cmp.streams.each { stream ->
+                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
                     if (stream.kind ==  "lf0") {
                         if (stream.parameters.interpolate) {
                             extractor = new ExtractLF0(true, stream.parameters.lower_f0)

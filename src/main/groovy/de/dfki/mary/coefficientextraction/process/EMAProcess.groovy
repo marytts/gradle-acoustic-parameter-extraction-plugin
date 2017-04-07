@@ -27,19 +27,8 @@ class EMAProcess implements ProcessInterface
     public void addTasks(Project project)
     {
         project.task('extractEMA') {
+            dependsOn.add("configurationExtraction")
             def input_file = ""
-            def channel_list = []
-            project.user_configuration.models.cmp.streams.each { stream ->
-                if (stream.kind == "ema") {
-                    input_file = (new File(DataFileFinder.getFilePath(stream.coeffDir))).toString() + "/" + project.basename + ".ema"
-
-                    // Check if channels are given
-                    if ((stream["parameters"]) && (stream.parameters["channel_ids"])) {
-                        channel_list = stream.parameters["channel_ids"]
-                    }
-
-                }
-            }
             if (input_file.isEmpty()) {
                 throw new Exception("no ema to extract, so why being here ?")
             }
@@ -47,6 +36,18 @@ class EMAProcess implements ProcessInterface
             outputs.files "$project.buildDir/ema/" + project.basename + ".ema"
 
             doLast {
+                def channel_list = []
+                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
+                    if (stream.kind == "ema") {
+                        input_file = (new File(DataFileFinder.getFilePath(stream.coeffDir))).toString() + "/" + project.basename + ".ema"
+
+                        // Check if channels are given
+                        if ((stream["parameters"]) && (stream.parameters["channel_ids"])) {
+                            channel_list = stream.parameters["channel_ids"]
+                        }
+
+                    }
+                }
                 (new File("$project.buildDir/ema")).mkdirs()
 
                 int[] channels;

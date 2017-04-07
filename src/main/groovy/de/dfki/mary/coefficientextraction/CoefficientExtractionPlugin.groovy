@@ -29,75 +29,25 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
 
         project.sourceCompatibility = JavaVersion.VERSION_1_7
 
-        // Load configuration
-        def slurper = new JsonSlurper()
-        def config_file = project.rootProject.ext.config_file
-        def config = slurper.parseText( config_file.text )
-
-        // Adapt pathes
-        DataFileFinder.project_path = new File(getClass().protectionDomain.codeSource.location.path).parent
-        if (config.data.project_dir) {
-            DataFileFinder.project_path = config.data.project_dir
-        }
-
-        def beams = config.settings.training.beam.split() as List
-        def nb_proc_local = 1
-        if (project.gradle.startParameter.getMaxWorkerCount() != 0) {
-            nb_proc_local = Runtime.getRuntime().availableProcessors(); // By default the number of core
-            if (config.settings.nb_proc) {
-                if (config.settings.nb_proc > nb_proc_local) {
-                    throw Exception("You will overload your machine, preventing stop !")
-                }
-
-                nb_proc_local = config.settings.nb_proc
-            }
-        }
 
         project.ext {
-
-            // User configuration
-            user_configuration = config;
-
-            trained_files = new HashMap()
-
-            // Nb processes
-            nb_proc = nb_proc_local
-
-            // HTS wrapper
-            utils_dir = "$project.buildDir/tmp/utils"
-
-            template_dir = "$project.buildDir/tmp/templates"
-
-
-            input_file = DataFileFinder.getFilePath(config.data.wav_dir) + "/${project.name}.wav"
             basename = project.name
         }
 
         project.status = project.version.endsWith('SNAPSHOT') ? 'integration' : 'release'
 
-        project.repositories {
-            jcenter()
-            maven {
-                url 'http://oss.jfrog.org/artifactory/repo'
-            }
-        }
-
-        project.configurations.create 'legacy'
-
-        project.sourceSets {
-            main {
-                java {
-                    // srcDir project.generatedSrcDir
-                }
-            }
-            test {
-                java {
-                    // srcDir project.generatedTestSrcDir
-                }
-            }
-        }
-
         project.afterEvaluate {
+
+            project.task("configurationExtraction") {
+                dependsOn "configuration"
+
+                def wav_dir = project.configuration.hasProperty("wav_dir") ? project.configuration.wav_dir : DataFileFinder.getFilePath(config.data.wav_dir)
+                ext.input_file = "$wav_dir/${project.name}.wav"
+
+                ext.nb_proc = project.configuration.hasProperty("nb_proc") ? project.configuration.nb_proc : 1
+                ext.user_configuration = project.configuration.hasProperty("user_configuration") ? project.configuration.user_configuration : null
+            }
+
 
             def kinds = [
             "ema":          new EMAProcess(),
@@ -109,7 +59,11 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
             "straightemadnn":  new STRAIGHTEMADNNProcess(),
             "weight":       new WEIGHTProcess()
             ];
-            kinds[project.user_configuration.settings.extraction.kind].addTasks(project)
+
+            if (project.configurationExtraction.user_configuration != null)
+            {
+                kinds[project.configurationExtraction.user_configuration.settings.extraction.kind].addTasks(project)
+            }
         }
     }
 }

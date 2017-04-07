@@ -27,9 +27,10 @@ class WEIGHTProcess implements ProcessInterface
     public void addTasks(Project project)
     {
         project.task('extractWEIGHT') {
+            dependsOn.add("configurationExtraction")
             def input_file = ""
             def order = 0
-            project.user_configuration.models.cmp.streams.each { stream ->
+            project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
                 if (stream.kind == "weight") {
                     input_file = (new File(DataFileFinder.getFilePath(stream.coeffDir))).toString() + "/" + project.basename + ".json" // FIXME: harcoded
                     if (stream.order) {
@@ -56,9 +57,10 @@ class WEIGHTProcess implements ProcessInterface
         }
 
         project.task('extractEMA') {
+            dependsOn.add("configurationExtraction")
             def input_file = ""
             def channel_list = []
-            project.user_configuration.models.cmp.streams.each { stream ->
+            project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
                 if (stream.kind == "weight") {
                     // FIXME: hardcoded
                     input_file = (new File(DataFileFinder.getFilePath("ema"))).toString() + "/" + project.basename + ".ema" // FIXME: hardcoded

@@ -31,7 +31,7 @@ class SplineProcess implements ProcessInterface
          *
          */
         project.task('extractSTRAIGHT') {
-            inputs.files project.input_file
+            inputs.files project.configurationExtraction.input_file
             outputs.files "$project.buildDir/f0/" + project.basename + ".f0", "$project.buildDir/ap/" + project.basename + ".ap", "$project.buildDir/sp/" + project.basename + ".sp"
             doLast {
                 (new File("$project.buildDir/ap")).mkdirs()
@@ -39,10 +39,10 @@ class SplineProcess implements ProcessInterface
                 (new File("$project.buildDir/f0")).mkdirs()
                 (new File("$project.buildDir/lf0")).mkdirs()
 
-                def extractor = new ExtractSTRAIGHT(project.user_configuration.path.straight)
+                def extractor = new ExtractSTRAIGHT(project.configurationExtraction.user_configuration.path.straight)
 
                 // **
-                project.user_configuration.models.cmp.streams.each { stream ->
+                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
                     if (stream.kind ==  "spline") {
                         if (stream.parameters.lower_f0){
                             extractor.setMinimumF0(stream.parameters.lower_f0)
@@ -52,8 +52,8 @@ class SplineProcess implements ProcessInterface
                         }
                     }
                 }
-                extractor.setFrameshift(project.user_configuration.signal.frameshift)
-                extractor.setSampleRate(project.user_configuration.signal.samplerate)
+                extractor.setFrameshift(project.configurationExtraction.user_configuration.signal.frameshift)
+                extractor.setSampleRate(project.configurationExtraction.user_configuration.signal.samplerate)
 
                 // **
 
@@ -64,7 +64,7 @@ class SplineProcess implements ProcessInterface
                 extToDir.put("lf0".toString(), "$project.buildDir/lf0".toString())
                 extractor.setDirectories(extToDir)
 
-                extractor.extract(input_file)
+                extractor.extract(project.configurationExtraction.input_file)
             }
         }
 
@@ -80,7 +80,7 @@ class SplineProcess implements ProcessInterface
                 (new File("$project.buildDir/lf0")).mkdirs()
                 def extractor = new ExtractLF0()
 
-                project.user_configuration.models.cmp.streams.each { stream ->
+                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
                     if (stream.kind ==  "spline") {
                         extractor = new ExtractLF0(true, stream.parameters.lower_f0)
                     }
@@ -108,10 +108,10 @@ class SplineProcess implements ProcessInterface
 
                 // 2. get spline file
                 (new File("$project.buildDir/spline")).mkdirs()
-                def extractor = new ExtractSpline(project.user_configuration.signal.frameshift * 10000, 3) // FIXME: take configuration into account !
+                def extractor = new ExtractSpline(project.configurationExtraction.user_configuration.signal.frameshift * 10000, 3) // FIXME: take configuration into account !
 
                 /*
-                project.user_configuration.models.cmp.streams.each { stream ->
+                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
                     if (stream.kind ==  "spline") {
                         extractor = new ExtractSpline()
                     }
@@ -121,7 +121,7 @@ class SplineProcess implements ProcessInterface
                 def extToDir = new Hashtable<String, String>()
                 extToDir.put("spline".toString(), "$project.buildDir/spline".toString())
                 extToDir.put("projdir".toString(), project.getRootProject().projectDir)
-                extToDir.put("lab".toString(), project.user_configuration.data.mono_lab_dir.toString())
+                extToDir.put("lab".toString(), project.configurationExtraction.user_configuration.data.mono_lab_dir.toString())
                 extractor.setDirectories(extToDir)
                 extractor.extract(lf0_file.getPath())
 
