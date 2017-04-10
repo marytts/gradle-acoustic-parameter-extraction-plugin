@@ -1,12 +1,12 @@
 plugins {
+    id 'java-gradle-plugin'
     id 'groovy'
     id 'maven-publish'
-    id 'nu.studer.plugindev' version '1.0.3'
-    id "com.jfrog.bintray" version "1.2"
+    // id 'com.gradle.plugin-publish' version '0.9.7'
 }
 
 group 'de.dfki.mary'
-version '0.5.3-SNAPSHOT'
+version '1.0-SNAPSHOT'
 
 repositories {
     maven {
@@ -22,31 +22,62 @@ dependencies {
     compile group: 'org.apache.velocity', name: 'velocity', version: '1.7'
     compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
     compile group: 'org.ejml', name: 'all', version: '0.29'
-
 }
 
-plugindev {
-    pluginImplementationClass 'de.dfki.mary.coefficientextraction.CoefficientExtractionPlugin'
-    pluginDescription 'An hts coefficient extraction process'
-    pluginLicense 'GPL-3.0'
-    pluginTags 'gradle', 'plugin', 'marytts', 'hts', 'straight', 'extraction'
-    authorId 'ingmar'
-    authorName 'Sébastien Le Maguer'
-    authorEmail 'slemaguer@coli.uni-saarland.de'
-    projectUrl 'https://github.com/marytts/gradle-coefficientextraction-plugin'
-    projectInceptionYear '2015'
-    done()
-}
 
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+    from sourceSets.main.allGroovy
+}
 
 test {
   // enable TestNG support (default is JUnit)
   useTestNG()
 }
 
-// bintray {
-//     user = project.properties.bintrayUser ?: null
-//     key = project.properties.bintrayApiKey ?: null
-//     pkg.userOrg = 'marytts'
-//     pkg.repo = 'marytts'
+
+
+gradlePlugin {
+    plugins {
+        lexiconCompilerPlugin {
+            id = 'de.dfki.mary.coefficientextraction'
+            implementationClass = 'de.dfki.mary.coefficientextraction.CoefficientExtractionPlugin'
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourceJar {
+                classifier 'sources'
+            }
+        }
+    }
+    repositories {
+        maven {
+            url version.endsWith('-SNAPSHOT') ? 'https://oss.jfrog.org/artifactory/oss-snapshot-local' : 'https://api.bintray.com/maven/slemaguer/maven/marytts'
+            credentials {
+                username = findProperty('bintrayUser')
+                password = findProperty('bintrayApiKey')
+            }
+        }
+    }
+}
+
+
+// pluginBundle {
+//     website = 'https://github.com/marytts/gradle-coefficientextraction-plugin'
+//     vcsUrl = 'https://github.com/marytts/gradle-coefficientextraction-plugin'
+//     description = 'An hts coefficient extraction process'
+//     tags = ['text-to-speech', 'extraction']
+
+//     plugins {
+//         lexiconCompilerPlugin {
+//             id = 'de.dfki.mary.coefficientextraction'
+//             id = 'de.dfki.mary.lexicon-compiler'
+//             displayName = 'Gradle MaryTTS coefficient extraction'
+//         }
+//     }
 // }
