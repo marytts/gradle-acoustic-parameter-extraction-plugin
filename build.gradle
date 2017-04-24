@@ -35,8 +35,6 @@ test {
   useTestNG()
 }
 
-
-
 gradlePlugin {
     plugins {
         lexiconCompilerPlugin {
@@ -76,7 +74,6 @@ publishing {
 //     plugins {
 //         lexiconCompilerPlugin {
 //             id = 'de.dfki.mary.coefficientextraction'
-//             id = 'de.dfki.mary.lexicon-compiler'
 //             displayName = 'Gradle MaryTTS coefficient extraction'
 //         }
 //     }
