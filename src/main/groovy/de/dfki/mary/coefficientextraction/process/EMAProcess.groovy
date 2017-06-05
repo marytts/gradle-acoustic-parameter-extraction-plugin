@@ -28,7 +28,7 @@ class EMAProcess implements ProcessInterface
     {
         project.task('extractEMA') {
             dependsOn.add("configurationExtraction")
-            def input_file = ""
+            def input_file = project.configurationExtraction.input_file
             if (input_file.isEmpty()) {
                 throw new Exception("no ema to extract, so why being here ?")
             }
