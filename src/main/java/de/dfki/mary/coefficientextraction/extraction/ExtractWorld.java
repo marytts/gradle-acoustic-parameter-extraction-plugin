@@ -13,7 +13,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
 /**
- * Coefficients extraction based on STRAIGHT
+ * Coefficients extraction based on WORLD
  *
  * @author <a href="mailto:slemaguer@coli.uni-saarland.de">Sébastien Le Maguer</a>
  */
@@ -38,7 +38,7 @@ public class ExtractWorld extends ExtractBase
         Process p;
 
         // 2. extraction
-        String[] cmd = {"world_analysis", "-f", (new Float(this.frameshift)).toString(), input_file_name, f0_output, sp_output, ap_output};
+        String[] cmd = {"analysis", (new Float(this.frameshift)).toString(), input_file_name, f0_output, sp_output, ap_output};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();
 
@@ -138,7 +138,6 @@ public class ExtractWorld extends ExtractBase
                 throw new Exception(" extToDir does not contains \"" + ext + "\" associated directory");
             }
         }
-
 
         String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
         String ap_output = extToDir.get("ap") + "/" + tokens[0] + ".ap";
