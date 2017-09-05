@@ -9,9 +9,7 @@ group 'de.dfki.mary'
 version '1.0-SNAPSHOT'
 
 repositories {
-    maven {
-        url 'https://oss.jfrog.org/artifactory/repo'
-    }
+    jcenter()
 }
 
 dependencies {
@@ -63,18 +61,3 @@ publishing {
         }
     }
 }
-
-
-// pluginBundle {
-//     website = 'https://github.com/marytts/gradle-coefficientextraction-plugin'
-//     vcsUrl = 'https://github.com/marytts/gradle-coefficientextraction-plugin'
-//     description = 'An hts coefficient extraction process'
-//     tags = ['text-to-speech', 'extraction']
-
-//     plugins {
-//         lexiconCompilerPlugin {
-//             id = 'de.dfki.mary.coefficientextraction'
-//             displayName = 'Gradle MaryTTS coefficient extraction'
-//         }
-//     }
-// }
