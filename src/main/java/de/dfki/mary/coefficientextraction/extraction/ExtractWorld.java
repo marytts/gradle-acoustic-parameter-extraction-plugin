@@ -1,6 +1,15 @@
 package de.dfki.mary.coefficientextraction.extraction;
 
+// World wrapper
+import jworld.*;
+
+// Audio I/O
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.AudioInputStream;
+
+// File part
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -13,122 +22,62 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
 /**
- * Coefficients extraction based on WORLD
+ * Process to extract the acoustic parameters using the World vocoder
  *
  * @author <a href="mailto:slemaguer@coli.uni-saarland.de">Sébastien Le Maguer</a>
  */
 public class ExtractWorld extends ExtractBase
 {
+    /** The frame shift */
     private float frameshift;
-    private static final float MAGIC_VALUE = 32768.0f;
 
+
+    /**
+     *  Default constructor which sets the frameshift to 5ms
+     *
+     */
     public ExtractWorld() throws Exception
     {
         setFrameshift(5);
     }
 
+    /**
+     *  Constructor parametrized by the frameshift
+     *
+     *  @param frameshift the frameshift used for the extraction
+     */
+    public ExtractWorld(float frameshift) throws Exception
+    {
+        setFrameshift(frameshift);
+    }
+
+    /**
+     *  Accessor to set a new frameshift value
+     *
+     *  @param frameshift the new frameshift value
+     */
     public void setFrameshift(float frameshift)
     {
         this.frameshift = frameshift;
     }
 
-    private void worldExtraction(String input_file_name, String f0_output, String sp_output, String ap_output)
-        throws Exception
+
+    /**
+     *  Accessor to get the frameshift value
+     *
+     *  @return the frameshift value
+     */
+    public float getFrameshift()
     {
-        Process p;
-
-        // 2. extraction
-        String[] cmd = {"analysis", (new Float(this.frameshift)).toString(), input_file_name, f0_output, sp_output, ap_output};
-        p = Runtime.getRuntime().exec(cmd);
-        p.waitFor();
-
-
-        BufferedReader reader =
-            new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-        String line = "";
-        // while ((line = reader.readLine())!= null) {
-        //         System.out.println(line);
-        // }
-
-        StringBuilder sb = new StringBuilder();
-        reader =
-            new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-        line = "";
-        while ((line = reader.readLine())!= null) {
-            sb.append(line + "\n");
-        }
-        if (!sb.toString().isEmpty())
-        {
-            throw new Exception(sb.toString());
-        }
+        return frameshift;
     }
 
-    private void f0Conversion(String input_file_name, String output_file_name) throws Exception
-    {
-        Process p;
 
-        // 2. extraction
-        String[] cmd = {"bash", "-c", "x2x +df " + input_file_name + " > " + output_file_name};
-        p = Runtime.getRuntime().exec(cmd);
-        p.waitFor();
-
-
-        BufferedReader reader =
-            new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-        String line = "";
-        // while ((line = reader.readLine())!= null) {
-        //         System.out.println(line);
-        // }
-
-        StringBuilder sb = new StringBuilder();
-        reader =
-            new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-        line = "";
-        while ((line = reader.readLine())!= null) {
-            sb.append(line + "\n");
-        }
-        if (!sb.toString().isEmpty())
-        {
-            throw new Exception(sb.toString());
-        }
-    }
-
-    private void spectrumConversion(String input_file_name, String output_file_name) throws Exception
-    {
-        Process p;
-
-        // 2. extraction
-        String[] cmd = {"bash", "-c", "x2x +df " + input_file_name + " | sopr -R -m " + MAGIC_VALUE + " > "+ output_file_name};
-        p = Runtime.getRuntime().exec(cmd);
-        p.waitFor();
-
-
-        BufferedReader reader =
-            new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-        String line = "";
-        // while ((line = reader.readLine())!= null) {
-        //         System.out.println(line);
-        // }
-
-        StringBuilder sb = new StringBuilder();
-        reader =
-            new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-        line = "";
-        while ((line = reader.readLine())!= null) {
-            sb.append(line + "\n");
-        }
-        if (!sb.toString().isEmpty())
-        {
-            throw new Exception(sb.toString());
-        }
-    }
-
+    /**
+     *  Extract the coefficients from the given input file
+     *
+     *  @param input_file_name the input wav filename
+     */
     public void extract(String input_file_name) throws Exception
     {
         // Check directories
@@ -139,26 +88,58 @@ public class ExtractWorld extends ExtractBase
             }
         }
 
+        // Generate output filenames
         String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
         String ap_output = extToDir.get("ap") + "/" + tokens[0] + ".ap";
         String sp_output = extToDir.get("sp") + "/" + tokens[0] + ".sp";
         String f0_output = extToDir.get("f0") + "/" + tokens[0] + ".f0";
 
-        String ap_tmp = extToDir.get("ap") + "/" + tokens[0] + ".tap";
-        String sp_tmp = extToDir.get("sp") + "/" + tokens[0] + ".tsp";
-        String f0_tmp = extToDir.get("f0") + "/" + tokens[0] + ".tf0";
 
-        // Extraction
-        worldExtraction(input_file_name, f0_tmp, sp_tmp, ap_tmp);
+        // Read audio
+        AudioInputStream ais = AudioSystem.getAudioInputStream(new File(input_file_name));
 
-        // Conversion for a proper SPTK use
-        f0Conversion(f0_tmp, f0_output);
-        spectrumConversion(ap_tmp, ap_output);
-        spectrumConversion(sp_tmp, sp_output);
+        // Initialize world wrapper
+        JWorldWrapper jww = new JWorldWrapper(ais);
+        jww.setFramePeriod(getFrameshift());
 
-        // Cleaning
-        (new File(f0_tmp)).delete();
-        (new File(ap_tmp)).delete();
-        (new File(sp_tmp)).delete();
+        // Extract
+        double[] f0 = jww.extractF0(true);
+        double[][] sp = jww.extractSP();
+        double[][] ap = jww.extractAP();
+
+        // Save results in float!
+        ByteBuffer bf;
+        FileOutputStream os;
+        // - F0
+        bf = ByteBuffer.allocateDirect(f0.length * Float.BYTES);
+        bf.order(ByteOrder.LITTLE_ENDIAN);
+        for (int t=0; t<f0.length; t++)
+            bf.putFloat((float) f0[t]);
+        bf.rewind();
+
+        os = new FileOutputStream(new File (f0_output));
+        os.write(bf.array());
+
+        // - SP
+        bf = ByteBuffer.allocateDirect(sp.length * Float.BYTES);
+        bf.order(ByteOrder.LITTLE_ENDIAN);
+        for (int t=0; t<sp.length; t++)
+            for (int d=0; d<sp[0].length; d++)
+            bf.putFloat((float) sp[t][d]);
+        bf.rewind();
+
+        os = new FileOutputStream(new File (sp_output));
+        os.write(bf.array());
+
+        // - AP
+        bf = ByteBuffer.allocateDirect(ap.length * Float.BYTES);
+        bf.order(ByteOrder.LITTLE_ENDIAN);
+        for (int t=0; t<ap.length; t++)
+            for (int d=0; d<ap[0].length; d++)
+            bf.putFloat((float) ap[t][d]);
+        bf.rewind();
+
+        os = new FileOutputStream(new File (ap_output));
+        os.write(bf.array());
     }
 }
