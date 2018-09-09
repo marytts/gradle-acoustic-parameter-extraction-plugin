@@ -1,2 +1,9 @@
+# Gradle
 .gradle
-build
+build/
+
+# Cache
+.classpath
+.meghanada/
+.project
+.settings/
