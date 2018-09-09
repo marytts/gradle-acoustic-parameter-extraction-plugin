@@ -7,6 +7,12 @@ plugins {
 }
 
 
+eclipse {
+    classpath {
+        downloadJavadoc = true
+    }
+}
+
 group 'de.dfki.mary'
 version '1.0-SNAPSHOT'
 
