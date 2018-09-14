@@ -76,27 +76,20 @@ public class ExtractWorld extends ExtractBase
     /**
      *  Extract the coefficients from the given input file
      *
-     *  @param input_file_name the input wav filename
+     *  @param input_file the input wav file
      */
-    public void extract(String input_file_name) throws Exception
+    public void extract(File input_file) throws Exception
     {
         // Check directories
         for(String ext : Arrays.asList("ap", "f0", "sp")) {
-            if (!extToDir.containsKey(ext))
+            if (!extToFile.containsKey(ext))
             {
-                throw new Exception(" extToDir does not contains \"" + ext + "\" associated directory");
+                throw new Exception("extToFile does not contains \"" + ext + "\" associated output file path");
             }
         }
 
-        // Generate output filenames
-        String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
-        String ap_output = extToDir.get("ap") + "/" + tokens[0] + ".ap";
-        String sp_output = extToDir.get("sp") + "/" + tokens[0] + ".sp";
-        String f0_output = extToDir.get("f0") + "/" + tokens[0] + ".f0";
-
-
         // Read audio
-        AudioInputStream ais = AudioSystem.getAudioInputStream(new File(input_file_name));
+        AudioInputStream ais = AudioSystem.getAudioInputStream(input_file);
 
         // Initialize world wrapper
         JWorldWrapper jww = new JWorldWrapper(ais);
@@ -110,36 +103,37 @@ public class ExtractWorld extends ExtractBase
         // Save results in float!
         ByteBuffer bf;
         FileOutputStream os;
+
         // - F0
-        bf = ByteBuffer.allocateDirect(f0.length * Float.BYTES);
+        bf = ByteBuffer.allocate(f0.length * Float.BYTES);
         bf.order(ByteOrder.LITTLE_ENDIAN);
         for (int t=0; t<f0.length; t++)
             bf.putFloat((float) f0[t]);
         bf.rewind();
 
-        os = new FileOutputStream(new File (f0_output));
+        os = new FileOutputStream(extToFile.get("f0"));
         os.write(bf.array());
 
         // - SP
-        bf = ByteBuffer.allocateDirect(sp.length * Float.BYTES);
+        bf = ByteBuffer.allocate(sp.length * sp[0].length * Float.BYTES);
         bf.order(ByteOrder.LITTLE_ENDIAN);
         for (int t=0; t<sp.length; t++)
             for (int d=0; d<sp[0].length; d++)
             bf.putFloat((float) sp[t][d]);
         bf.rewind();
 
-        os = new FileOutputStream(new File (sp_output));
+        os = new FileOutputStream(extToFile.get("sp"));
         os.write(bf.array());
 
         // - AP
-        bf = ByteBuffer.allocateDirect(ap.length * Float.BYTES);
+        bf = ByteBuffer.allocate(ap.length * ap[0].length * Float.BYTES);
         bf.order(ByteOrder.LITTLE_ENDIAN);
         for (int t=0; t<ap.length; t++)
             for (int d=0; d<ap[0].length; d++)
             bf.putFloat((float) ap[t][d]);
         bf.rewind();
 
-        os = new FileOutputStream(new File (ap_output));
+        os = new FileOutputStream(extToFile.get("ap"));
         os.write(bf.array());
     }
 }

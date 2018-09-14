@@ -137,6 +137,7 @@ public class ExtractMGC extends ExtractBase
             command +=  "lpc2lsp -m " + order + logGainOpt + " -n 2048 -d 1.0E-08 -p 8 > " + output_file_name;
         }
 
+
         // 2. extraction
         String[] cmd = {"bash", "-c", command};
         p = Runtime.getRuntime().exec(cmd);
@@ -163,7 +164,6 @@ public class ExtractMGC extends ExtractBase
         {
             throw new Exception(sb.toString());
         }
-
     }
 
 
@@ -172,18 +172,15 @@ public class ExtractMGC extends ExtractBase
         throw new Exception("Method extractFromWav not implemented yet");
     }
 
-    public void extract(String input_file_name) throws Exception
+    public void extract(File input_file) throws Exception
     {
-
-        String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
-        String output_file_name = extToDir.get("mgc") + "/" + tokens[0] + ".mgc";
         if (spectrum_flag)
         {
-            extractFromSpectrum(input_file_name, output_file_name);
+            extractFromSpectrum(input_file.toString(), extToFile.get("mgc").toString());
         }
         else
         {
-            extractFromWav(input_file_name, output_file_name);
+            extractFromWav(input_file.toString(), extToFile.get("mgc").toString());
         }
     }
 }

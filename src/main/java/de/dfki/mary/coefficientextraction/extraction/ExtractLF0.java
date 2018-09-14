@@ -148,22 +148,19 @@ public class ExtractLF0 extends ExtractBase
         }
     }
 
-    public void extract(String input_file_name) throws Exception
+    public void extract(File input_file) throws Exception
     {
-        // Extract logF0 if wanted
-        String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
-        String output_file_name = extToDir.get("lf0") + "/" + tokens[0] + ".lf0";
         if (is_interpolated)
         {
             File temp = File.createTempFile("temp-inter", ".f0");
-            generateLogF0(input_file_name, temp.getAbsolutePath());
-            interpolateF0(temp.getAbsolutePath(), output_file_name);
+            generateLogF0(input_file.toString(), temp.getAbsolutePath());
+            interpolateF0(temp.getAbsolutePath(), extToFile.get("lf0").toString());
 
             temp.delete();
         }
         else
         {
-            generateLogF0(input_file_name, output_file_name);
+            generateLogF0(input_file.toString(), extToFile.get("lf0").toString());
         }
     }
 }

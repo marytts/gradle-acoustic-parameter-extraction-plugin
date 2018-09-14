@@ -1,5 +1,6 @@
 package de.dfki.mary.coefficientextraction.process
 
+/* Gradle imports */
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -11,156 +12,98 @@ import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.bundling.Zip
 
-import static groovyx.gpars.GParsPool.runForkJoin
-import static groovyx.gpars.GParsPool.withPool
+/* Helpers import */
+import de.dfki.mary.coefficientextraction.process.task.ExtractWorldTask;
+import de.dfki.mary.coefficientextraction.process.task.ExtractMGCTask;
+import de.dfki.mary.coefficientextraction.process.task.ExtractLF0Task;
+import de.dfki.mary.coefficientextraction.process.task.ExtractBAPTask;
 
-import de.dfki.mary.coefficientextraction.DataFileFinder
-import de.dfki.mary.coefficientextraction.extraction.*
-
-import groovy.json.JsonBuilder
-import groovy.json.JsonSlurper
-import groovy.xml.*
-
+/**
+ *  Class which defines the process to extract the coefficients using the world vocoder
+ */
 class WorldProcess implements ProcessInterface
 {
-    // FIXME: where filename is defined !
+
+    /**
+     *  Method to add the task to the given project.
+     *
+     *
+     *  @param project the project which needs the coefficient extraction
+     */
+    @Override
     public void addTasks(Project project)
     {
-        project.task('extractWorld') {
+        /**
+         *  The first task to add is the vocoder parameter from the wav using world.
+         *
+         *  This task will generate the spectrum (.sp), the f0 (.f0) and the aperiodicity (.ap).
+         */
+        project.task('extractWorld', type: ExtractWorldTask) {
             dependsOn.add("configurationExtraction")
-            inputs.files project.configurationExtraction.input_file
-            outputs.files "$project.buildDir/f0/" + project.basename + ".f0",
-            "$project.buildDir/ap/" + project.basename + ".ap",
-            "$project.buildDir/sp/" + project.basename + ".sp"
 
-            doLast {
-                (new File("$project.buildDir/ap")).mkdirs()
-                (new File("$project.buildDir/sp")).mkdirs()
-                (new File("$project.buildDir/f0")).mkdirs()
+            // Define directories
+            wav_dir = project.configuration.wav_dir
+            sp_dir = new File("$project.buildDir/sp/")
+            f0_dir = new File("$project.buildDir/f0/")
+            ap_dir = new File("$project.buildDir/ap/")
 
-                def extractor = new ExtractWorld()
-
-                // **
-                extractor.setFrameshift(project.configurationExtraction.user_configuration.signal.frameshift)
-
-                // **
-
-                def extToDir = new Hashtable<String, String>()
-                extToDir.put("ap".toString(), "$project.buildDir/ap".toString())
-                extToDir.put("sp".toString(), "$project.buildDir/sp".toString())
-                extToDir.put("f0".toString(), "$project.buildDir/f0".toString())
-                extractor.setDirectories(extToDir)
-
-                extractor.extract(project.configurationExtraction.input_file)
-            }
+            // Define list_basenames
+            list_basenames = project.configuration.list_basenames
         }
 
         /**
-         * Extract aperiodicty per band based on the aperiodicity extracted by STRAIGHT
+         *  This task generate the bap file from the ap file.
          *
          */
-        project.task('extractBAP') {
-            inputs.files "$project.buildDir/ap/" + project.basename + ".ap"
-            outputs.files "$project.buildDir/bap/" + project.basename + ".bap"
-            if (!(new File("$project.buildDir/bap/" + project.basename + ".bap")).exists()) {
-                dependsOn.add("extractWorld")
-            }
+        project.task('extractBAP', type: ExtractBAPTask) {
+            description "Task which converts ap to bap file"
 
-            doLast {
-                (new File("$project.buildDir/bap")).mkdirs()
+            // Define directories
+            ap_dir = project.extractWorld.ap_dir
+            bap_dir = new File("$project.buildDir/bap/")
 
-                def extractor = new ExtractBAP()
-
-                // **
-                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
-                    if (stream.kind ==  "bap") {
-                        if (stream.order){
-                            extractor.setOrder(stream.order.shortValue())
-                        }
-                    }
-                }
-                extractor.setSampleRate(project.configurationExtraction.user_configuration.signal.samplerate)
-
-                def extToDir = new Hashtable<String, String>()
-                extToDir.put("bap".toString(), "$project.buildDir/bap".toString())
-                extractor.setDirectories(extToDir)
-
-                extractor.extract("$project.buildDir/ap/" + project.basename + ".ap")
-            }
+            // Define list_basenames
+            list_basenames = project.configuration.list_basenames
         }
 
+
         /**
-         *  Extract MGC coefficients based on the spectrum extracted by STRAIGHT
+         *  This task generate the mgc file from the sp file.
          *
          */
-        project.task('extractMGC') {
-            inputs.files "$project.buildDir/sp/" + project.basename + ".sp"
-            outputs.files "$project.buildDir/mgc/" + project.basename + ".mgc"
-            if (!(new File("$project.buildDir/mgc/" + project.basename + ".mgc")).exists()) {
-                dependsOn.add("extractWorld")
-            }
+        project.task('extractMGC', type: ExtractMGCTask) {
+            description "Task which converts sp to mgc file"
 
-            doLast {
-                (new File("$project.buildDir/mgc")).mkdirs()
+            // Define directories
+            sp_dir = project.extractWorld.sp_dir
+            mgc_dir = new File("$project.buildDir/mgc/")
 
-                def extractor = new ExtractMGC()
-
-                // **
-                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
-                    if (stream.kind ==  "mgc") {
-                        if (stream.order){
-                            extractor.setOrder(stream.order.shortValue())
-                        }
-                        if (stream.gamma){
-                            extractor.setGamma(stream.parameters.gamma)
-                        }
-                        if (stream.use_lngain){
-                            extractor.set(stream.parameters.use_lngain)
-                        }
-                    }
-                }
-                extractor.setSampleRate(project.configurationExtraction.user_configuration.signal.samplerate)
-
-                // **
-                def extToDir = new Hashtable<String, String>()
-                extToDir.put("mgc".toString(), "$project.buildDir/mgc".toString())
-                extractor.setDirectories(extToDir)
-
-                extractor.extract("$project.buildDir/sp/" + project.basename + ".sp")
-            }
+            // Define list_basenames
+            list_basenames = project.configuration.list_basenames
         }
 
-        project.task('extractLF0') {
-            dependsOn.add("extractWorld")
-            inputs.files "$project.buildDir/f0/" + project.basename + ".f0"
-            outputs.files "$project.buildDir/lf0/" + project.basename + ".lf0"
+        /**
+         *  This task generate the log f0 file from the f0 file.
+         *
+         */
+        project.task('extractLF0', type: ExtractLF0Task) {
+            description "Task which converts f0 to lf0 file"
 
+            // Define directories
+            f0_dir = project.extractWorld.f0_dir
+            lf0_dir = new File("$project.buildDir/lf0/")
 
-            doLast {
-                (new File("$project.buildDir/lf0")).mkdirs()
-                def extractor = new ExtractLF0()
-
-                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
-                    if (stream.kind ==  "lf0") {
-                        if (stream.parameters.interpolate) {
-                            extractor = new ExtractLF0(true, stream.parameters.lower_f0)
-                        }
-                    }
-                }
-
-                def extToDir = new Hashtable<String, String>()
-                extToDir.put("lf0".toString(), "$project.buildDir/lf0".toString())
-                extractor.setDirectories(extToDir)
-                extractor.extract("$project.buildDir/f0/" + project.basename + ".f0")
-
-            }
+            // Define list_basenames
+            list_basenames = project.configuration.list_basenames
         }
 
 
         /**
-         * extraction generic task
+         *  Generic extraction task which is the entry point of the process
+         *
          */
         project.task('extract') {
+            description "Entry task for World based acoustic coefficient extraction"
             dependsOn.add("extractMGC")
             dependsOn.add("extractLF0")
             dependsOn.add("extractBAP")
