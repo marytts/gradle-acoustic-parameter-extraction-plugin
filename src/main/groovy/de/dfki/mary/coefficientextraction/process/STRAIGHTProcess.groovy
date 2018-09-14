@@ -21,9 +21,8 @@ import de.dfki.mary.coefficientextraction.process.task.ExtractBAPTask;
 
 class STRAIGHTProcess implements ProcessInterface
 {
-    // FIXME: where filename is defined !
-    public void addTasks(Project project)
-    {
+    protected void addGenericTasks(Project project) {
+
         project.task('extractSTRAIGHT', type:ExtractSTRAIGHTTask) {
             dependsOn.add("configurationExtraction")
 
@@ -86,6 +85,15 @@ class STRAIGHTProcess implements ProcessInterface
             // Define list_basenames
             list_basenames = project.configuration.list_basenames
         }
+
+    }
+
+
+    // FIXME: where filename is defined !
+    @Override
+    public void addTasks(Project project)
+    {
+        addGenericTasks(project);
 
         /**
          * extraction generic task
