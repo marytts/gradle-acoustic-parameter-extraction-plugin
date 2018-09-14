@@ -18,16 +18,11 @@ public class ExtractVUV extends ExtractBase
     {
     }
 
-    public void extract(String input_file_name) throws Exception
+    public void extract(File input_file) throws Exception
     {
-        // Extract VUV from LF0
-        String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
-        String output_file_name = extToDir.get("vuv") + "/" + tokens[0] + ".vuv";
-
-
         // 2. extraction
-        String command = "cat " + input_file_name + " | ";
-        command += "sopr -magic -1.0E+10 -m 0.0 -a 1.0 -MAGIC 0.0 > " + output_file_name;
+        String command = "cat " + input_file.toString() + " | ";
+        command += "sopr -magic -1.0E+10 -m 0.0 -a 1.0 -MAGIC 0.0 > " + extToFile.get("vuv").toString();
 
         String[] cmd = {"bash", "-c", command};
         Process p = Runtime.getRuntime().exec(cmd);

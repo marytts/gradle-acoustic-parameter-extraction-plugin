@@ -116,13 +116,8 @@ public class ExtractInterpolatedF0 extends ExtractBase
         Files.write(path, output_data_bytes);
     }
 
-    public void extract(String input_file_name) throws Exception
+    public void extract(File input_file) throws Exception
     {
-        // Extract logF0 if wanted
-        String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
-        String output_file_name = extToDir.get("interpolated_lf0") + "/" + tokens[0] + ".lf0";
-
-        linearInterpolation(input_file_name, output_file_name);
-
+        linearInterpolation(input_file.toString(), extToFile.get("interpolated_lf0").toString());
     }
 }
