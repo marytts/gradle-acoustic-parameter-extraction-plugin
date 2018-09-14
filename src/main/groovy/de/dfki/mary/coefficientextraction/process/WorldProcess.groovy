@@ -56,6 +56,7 @@ class WorldProcess implements ProcessInterface
          *
          */
         project.task('extractBAP', type: ExtractBAPTask) {
+            dependsOn.add("configurationExtraction")
             description "Task which converts ap to bap file"
 
             // Define directories
@@ -72,6 +73,7 @@ class WorldProcess implements ProcessInterface
          *
          */
         project.task('extractMGC', type: ExtractMGCTask) {
+            dependsOn.add("configurationExtraction")
             description "Task which converts sp to mgc file"
 
             // Define directories
@@ -87,6 +89,7 @@ class WorldProcess implements ProcessInterface
          *
          */
         project.task('extractLF0', type: ExtractLF0Task) {
+            dependsOn.add("configurationExtraction")
             description "Task which converts f0 to lf0 file"
 
             // Define directories
