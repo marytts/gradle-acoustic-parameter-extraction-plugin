@@ -1,5 +1,6 @@
 package de.dfki.mary.coefficientextraction.process
 
+/* Gradle imports */
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -11,163 +12,80 @@ import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.bundling.Zip
 
-import static groovyx.gpars.GParsPool.runForkJoin
-import static groovyx.gpars.GParsPool.withPool
+/* Helpers import */
+import de.dfki.mary.coefficientextraction.process.task.ExtractSTRAIGHTTask;
+import de.dfki.mary.coefficientextraction.process.task.ExtractMGCTask;
+import de.dfki.mary.coefficientextraction.process.task.ExtractLF0Task;
+import de.dfki.mary.coefficientextraction.process.task.ExtractBAPTask;
 
-import de.dfki.mary.coefficientextraction.DataFileFinder
-import de.dfki.mary.coefficientextraction.extraction.*
-
-import groovy.json.JsonBuilder
-import groovy.json.JsonSlurper
-import groovy.xml.*
 
 class STRAIGHTProcess implements ProcessInterface
 {
     // FIXME: where filename is defined !
     public void addTasks(Project project)
     {
-        project.task('extractSTRAIGHT') {
+        project.task('extractSTRAIGHT', type:ExtractSTRAIGHTTask) {
             dependsOn.add("configurationExtraction")
-            inputs.files project.configurationExtraction.input_file
-            outputs.files "$project.buildDir/f0/" + project.basename + ".f0", "$project.buildDir/ap/" + project.basename + ".ap", "$project.buildDir/sp/" + project.basename + ".sp"
-            doLast {
-                (new File("$project.buildDir/ap")).mkdirs()
-                (new File("$project.buildDir/sp")).mkdirs()
-                (new File("$project.buildDir/f0")).mkdirs()
-                (new File("$project.buildDir/lf0")).mkdirs()
 
-                def extractor = new ExtractSTRAIGHT(project.configurationExtraction.user_configuration.path.straight)
+            // Define directories
+            wav_dir = project.configuration.wav_dir
+            sp_dir = new File("$project.buildDir/sp/")
+            f0_dir = new File("$project.buildDir/f0/")
+            ap_dir = new File("$project.buildDir/ap/")
 
-                // **
-                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
-                    if (stream.kind ==  "lf0") {
-                        if (stream.parameters.lower_f0){
-                            extractor.setMinimumF0(stream.parameters.lower_f0)
-                        }
-                        if (stream.parameters.upper_f0){
-                            extractor.setMaximumF0(stream.parameters.upper_f0)
-                        }
-                    }
-                }
-                extractor.setFrameshift(project.configurationExtraction.user_configuration.signal.frameshift)
-                extractor.setSampleRate(project.configurationExtraction.user_configuration.signal.samplerate)
+            // Define list_basenames
+            list_basenames = project.configuration.list_basenames
+        }
 
-                // **
 
-                def extToDir = new Hashtable<String, String>()
-                extToDir.put("ap".toString(), "$project.buildDir/ap".toString())
-                extToDir.put("sp".toString(), "$project.buildDir/sp".toString())
-                extToDir.put("f0".toString(), "$project.buildDir/f0".toString())
-                extToDir.put("lf0".toString(), "$project.buildDir/lf0".toString())
-                extractor.setDirectories(extToDir)
+        /**
+         *  This task generate the bap file from the ap file.
+         *
+         */
+        project.task('extractBAP', type: ExtractBAPTask) {
+            dependsOn.add("configurationExtraction")
+            description "Task which converts ap to bap file"
 
-                extractor.extract(project.configurationExtraction.input_file)
-            }
+            // Define directories
+            ap_dir = project.extractSTRAIGHT.ap_dir
+            bap_dir = new File("$project.buildDir/bap/")
+
+            // Define list_basenames
+            list_basenames = project.configuration.list_basenames
+        }
+
+
+        /**
+         *  This task generate the mgc file from the sp file.
+         *
+         */
+        project.task('extractMGC', type: ExtractMGCTask) {
+            dependsOn.add("configurationExtraction")
+            description "Task which converts sp to mgc file"
+
+            // Define directories
+            sp_dir = project.extractSTRAIGHT.sp_dir
+            mgc_dir = new File("$project.buildDir/mgc/")
+
+            // Define list_basenames
+            list_basenames = project.configuration.list_basenames
         }
 
         /**
-         * Extract aperiodicty per band based on the aperiodicity extracted by STRAIGHT
+         *  This task generate the log f0 file from the f0 file.
          *
          */
-        project.task('extractBAP') {
-            inputs.files "$project.buildDir/ap/" + project.basename + ".ap"
-            outputs.files "$project.buildDir/bap/" + project.basename + ".bap"
-            if (!(new File("$project.buildDir/bap/" + project.basename + ".bap")).exists()) {
-                dependsOn.add("extractSTRAIGHT")
-            }
+        project.task('extractLF0', type: ExtractLF0Task) {
+            dependsOn.add("configurationExtraction")
+            description "Task which converts f0 to lf0 file"
 
-            doLast {
-                (new File("$project.buildDir/bap")).mkdirs()
+            // Define directories
+            f0_dir = project.extractSTRAIGHT.f0_dir
+            lf0_dir = new File("$project.buildDir/lf0/")
 
-                def extractor = new ExtractBAP()
-
-                // **
-                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
-                    if (stream.kind ==  "bap") {
-                        if (stream.order){
-                            extractor.setOrder(stream.order.shortValue())
-                        }
-                    }
-                }
-                extractor.setSampleRate(project.configurationExtraction.user_configuration.signal.samplerate)
-
-                def extToDir = new Hashtable<String, String>()
-                extToDir.put("bap".toString(), "$project.buildDir/bap".toString())
-                extractor.setDirectories(extToDir)
-
-                extractor.extract("$project.buildDir/ap/" + project.basename + ".ap")
-            }
+            // Define list_basenames
+            list_basenames = project.configuration.list_basenames
         }
-
-        /**
-         *  Extract MGC coefficients based on the spectrum extracted by STRAIGHT
-         *
-         */
-        project.task('extractMGC') {
-            inputs.files "$project.buildDir/sp/" + project.basename + ".sp"
-            outputs.files "$project.buildDir/mgc/" + project.basename + ".mgc"
-            if (!(new File("$project.buildDir/mgc/" + project.basename + ".mgc")).exists()) {
-                dependsOn.add("extractSTRAIGHT")
-            }
-
-            doLast {
-                (new File("$project.buildDir/mgc")).mkdirs()
-
-                def extractor = new ExtractMGC()
-
-                // **
-                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
-                    if (stream.kind ==  "mgc") {
-                        if (stream.order){
-                            extractor.setOrder(stream.order.shortValue())
-                        }
-                        if (stream.gamma){
-                            extractor.setGamma(stream.parameters.gamma)
-                        }
-                        if (stream.use_lngain){
-                            extractor.set(stream.parameters.use_lngain)
-                        }
-                    }
-                }
-                extractor.setSampleRate(project.configurationExtraction.user_configuration.signal.samplerate)
-
-                // **
-                def extToDir = new Hashtable<String, String>()
-                extToDir.put("mgc".toString(), "$project.buildDir/mgc".toString())
-                extractor.setDirectories(extToDir)
-
-                extractor.extract("$project.buildDir/sp/" + project.basename + ".sp")
-            }
-        }
-
-        project.task('extractLF0'){
-            inputs.files "$project.buildDir/f0/" + project.basename + ".f0"
-            outputs.files "$project.buildDir/lf0/" + project.basename + ".lf0"
-
-            if (!(new File("$project.buildDir/lf0/" + project.basename + ".lf0")).exists()) {
-                dependsOn.add("extractSTRAIGHT")
-            }
-
-            doLast {
-                (new File("$project.buildDir/lf0")).mkdirs()
-                def extractor = new ExtractLF0()
-
-                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
-                    if (stream.kind ==  "lf0") {
-                        if (stream.parameters.interpolate) {
-                            extractor = new ExtractLF0(true, stream.parameters.lower_f0)
-                        }
-                    }
-                }
-
-                def extToDir = new Hashtable<String, String>()
-                extToDir.put("lf0".toString(), "$project.buildDir/lf0".toString())
-                extractor.setDirectories(extToDir)
-                extractor.extract("$project.buildDir/f0/" + project.basename + ".f0")
-
-            }
-        }
-
 
         /**
          * extraction generic task

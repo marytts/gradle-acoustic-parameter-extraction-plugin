@@ -50,6 +50,11 @@ public class ExtractSTRAIGHT extends ExtractBase
     {
         // Demo parameters
         this.straight_path = straight_path;
+
+        if (!(new File(straight_path + "/exstraightsource.m")).exists()) {
+            throw new IllegalArgumentException("path \"" + straight_path + "\" doesn't contain straight!");
+        }
+
         setSampleRate(48000);
         setFrameshift(5);
         setMinimumF0(110);
@@ -120,15 +125,8 @@ public class ExtractSTRAIGHT extends ExtractBase
 
     private File generateScript(String input_file_name) throws Exception
     {
-
         // Normalisation coefficient computation
         double norm_coef = computeNormalisationRate(input_file_name);
-
-        // Prepare filenames
-        String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+$)");
-        String ap_output = extToDir.get("ap") + "/" + tokens[0] + ".ap";
-        String sp_output = extToDir.get("sp") + "/" + tokens[0] + ".sp";
-        String f0_output = extToDir.get("f0") + "/" + tokens[0] + ".f0";
 
 
         // Init template engine
@@ -145,9 +143,9 @@ public class ExtractSTRAIGHT extends ExtractBase
         context.put("maxi_f0", this.maxi_F0);
         context.put("norm_coef", norm_coef);
         context.put("input_file_name", input_file_name);
-        context.put("f0_output", f0_output);
-        context.put("sp_output", sp_output);
-        context.put("ap_output", ap_output);
+        context.put("f0_output", extToFile.get("f0"));
+        context.put("sp_output", extToFile.get("sp"));
+        context.put("ap_output", extToFile.get("ap"));
 
         // Get and adapt Template
         Template t = ve.getTemplate("de/dfki/mary/coefficientextraction/extraction/extract_straight.m");
@@ -164,25 +162,25 @@ public class ExtractSTRAIGHT extends ExtractBase
     }
 
 
-    public void extract(String input_file_name) throws Exception
+    public void extract(File input_file) throws Exception
     {
         File script_file = new File("not defined");
         Process p;
 
-        // Check directories
+        // Check output_file
         for(String ext : Arrays.asList("ap", "f0", "sp")) {
-            if (!extToDir.containsKey(ext))
+            if (!extToFile.containsKey(ext))
             {
-                throw new Exception(" extToDir does not contains \"" + ext + "\" associated directory");
+                throw new Exception("extToFile does not contain\"" + ext + "\" associated output file path");
             }
         }
-        if ((logF0Flag) && (!extToDir.containsKey("lf0")))
+        if ((logF0Flag) && (!extToFile.containsKey("lf0")))
         {
-            throw new Exception(" extToDir does not contains \"lf0\" associated directory");
+            throw new Exception(" extToDir does not contain \"lf0\" associated output file path");
         }
 
         // 1. generate the script
-        script_file = generateScript(input_file_name);
+        script_file = generateScript(input_file.toString());
 
         // 2. extraction
         String command = "matlab -nojvm -nodisplay -nosplash < \"" + script_file.getPath() + "\"";
