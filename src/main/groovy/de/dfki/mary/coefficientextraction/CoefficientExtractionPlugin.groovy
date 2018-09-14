@@ -3,32 +3,17 @@ package de.dfki.mary.coefficientextraction
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.logging.LogLevel
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.MavenPlugin
-import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.Exec
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.bundling.Zip
-
-import static groovyx.gpars.GParsPool.runForkJoin
-import static groovyx.gpars.GParsPool.withPool
 
 import de.dfki.mary.coefficientextraction.export.*
 import de.dfki.mary.coefficientextraction.process.*
 
-import groovy.json.JsonBuilder
-import groovy.json.JsonSlurper
-import groovy.xml.*
-
 class CoefficientExtractionPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
-        project.plugins.apply JavaPlugin
-        project.plugins.apply MavenPlugin
+        // project.plugins.apply JavaPlugin
+        // project.plugins.apply MavenPlugin
 
-        project.sourceCompatibility = JavaVersion.VERSION_1_7
-
+        project.sourceCompatibility = JavaVersion.VERSION_1_8
 
         project.ext {
             basename = project.name
@@ -53,7 +38,7 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
             "world":        new WorldProcess(),
             "straightema":  new STRAIGHTEMAProcess(),
             "straightemadnn":  new STRAIGHTEMADNNProcess(),
-            "weight":       new WEIGHTProcess()
+            "weight":       new WeightProcess()
             ];
 
             if (project.configurationExtraction.user_configuration != null)
