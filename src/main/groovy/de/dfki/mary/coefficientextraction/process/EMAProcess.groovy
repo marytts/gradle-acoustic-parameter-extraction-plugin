@@ -12,7 +12,7 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.bundling.Zip
 
 import static groovyx.gpars.GParsPool.runForkJoin
-import static groovyx.gpars.GParsPool.withPool
+import static groovyx.gpars.GParsPool.withPoo
 
 import de.dfki.mary.coefficientextraction.DataFileFinder
 import de.dfki.mary.coefficientextraction.extraction.*
@@ -21,62 +21,35 @@ import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.xml.*
 
+import de.dfki.mary.coefficientextraction.process.task.ExtractEMATask;
+
+
+/**
+ *  Classe which defines the process to adapt EMA data from the speech tools (MNGU) format to a raw binary EMA file
+ *
+ */
 class EMAProcess implements ProcessInterface
 {
-    // FIXME: where filename is defined !
+    /**
+     *  Method to add the sequence of tasks needed to achieve the process
+     *
+     *  In this case, the sequence is composed by only the ExtractEMATask type task
+     *
+     *  @param project the project which is applies the process
+     */
+    @Override
     public void addTasks(Project project)
     {
-        project.task('extractEMA') {
-            dependsOn.add("configurationExtraction")
-            def input_file = project.configurationExtraction.input_file
-            if (input_file.isEmpty()) {
-                throw new Exception("no ema to extract, so why being here ?")
-            }
-            inputs.files input_file
-            outputs.files "$project.buildDir/ema/" + project.basename + ".ema"
+        project.task('extract', type: ExtractEMATask) {
+            // Current task depends on the configurationExtraction entry point
+            dependsOn "configurationExtraction"
 
-            doLast {
-                def channel_list = []
-                project.configurationExtraction.user_configuration.models.cmp.streams.each { stream ->
-                    if (stream.kind == "ema") {
-                        input_file = (new File(DataFileFinder.getFilePath(stream.coeffDir))).toString() + "/" + project.basename + ".ema"
+            // Adapt directories
+            orig_ema_dir = project.configuration.ema_dir
+            ema_dir = new File("${project.buildDir}/ema/")
 
-                        // Check if channels are given
-                        if ((stream["parameters"]) && (stream.parameters["channel_ids"])) {
-                            channel_list = stream.parameters["channel_ids"]
-                        }
-
-                    }
-                }
-                (new File("$project.buildDir/ema")).mkdirs()
-
-                int[] channels;
-                if (channel_list)
-                {
-                    channels = new int[channel_list.size()]
-                    channel_list.eachWithIndex{c,i ->
-                        channels[i] = c.intValue()
-                    }
-                }
-                else
-                {
-                    channels = [0, 8, 16, 24, 32, 64, 72];
-                }
-                def extractor = new ExtractEMA(channels)
-
-                def extToDir = new Hashtable<String, String>()
-                extToDir.put("ema".toString(), "$project.buildDir/ema".toString())
-                extractor.setDirectories(extToDir)
-
-                extractor.extract(input_file)
-            }
-        }
-
-        /**
-         * extraction generic task
-         */
-        project.task('extract') {
-            dependsOn.add("extractEMA")
+            // Define list_basenames
+            list_basenames = project.configuration.list_basenames
         }
     }
 }

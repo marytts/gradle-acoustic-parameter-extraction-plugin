@@ -37,19 +37,9 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
         project.status = project.version.endsWith('SNAPSHOT') ? 'integration' : 'release'
 
         project.afterEvaluate {
-
             project.task("configurationExtraction") {
                 dependsOn "configuration"
 
-                def wav_dir = project.configuration.hasProperty("wav_dir") ? project.configuration.wav_dir : DataFileFinder.getFilePath(config.data.wav_dir)
-                def ema_dir = project.configuration.hasProperty("ema_dir") ? project.configuration.ema_dir : DataFileFinder.getFilePath(config.data.ema_dir)
-
-                if (project.configuration.kind.equals("ema")) {
-                    ext.input_file = "$ema_dir/${project.name}.ema"
-                } else {
-                    ext.input_file = "$wav_dir/${project.name}.wav"
-                }
-                
                 ext.nb_proc = project.configuration.hasProperty("nb_proc") ? project.configuration.nb_proc : 1
                 ext.user_configuration = project.configuration.hasProperty("user_configuration") ? project.configuration.user_configuration : null
             }

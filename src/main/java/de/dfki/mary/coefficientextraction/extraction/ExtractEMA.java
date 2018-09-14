@@ -36,15 +36,14 @@ public class ExtractEMA extends ExtractBase
         vector_size = channels.length * 3;
     }
 
-    public void extract(String input_file_name)
+    public void extract(File input_file)
         throws Exception
     {
         boolean end_header = false;
-        File emaFile = new File(input_file_name);
         ArrayList<ArrayList<Float>> frames = new ArrayList<ArrayList<Float>>();
         int size = 0;
 
-        String[] cmd = {"ch_track", "-otype",  "est", emaFile.toString()};
+        String[] cmd = {"ch_track", "-otype",  "est", input_file.toString()};
         Process p = Runtime.getRuntime ().exec (cmd);
         // p.waitFor();
 
@@ -149,7 +148,6 @@ public class ExtractEMA extends ExtractBase
         }
 
         // Output
-        File output_file = new File(extToDir.get("ema"), (new File(input_file_name)).getName());
-        Files.write(output_file.toPath(), bf.array());
+        Files.write(extToFile.get("ema").toPath(), bf.array());
     }
 }

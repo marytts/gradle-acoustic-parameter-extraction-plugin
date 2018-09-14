@@ -1,5 +1,6 @@
 package de.dfki.mary.coefficientextraction.extraction;
 
+import java.io.File;
 import java.util.Hashtable;
 
 /**
@@ -9,6 +10,6 @@ import java.util.Hashtable;
  */
 public interface ExtractInterface
 {
-        public void setDirectories(Hashtable<String, String> extToDir);
-        public void extract(String input_file_name) throws Exception;
+    public void setOutputFiles(Hashtable<String, File> extToFile);
+    public void extract(File input_file) throws Exception;
 }
