@@ -98,7 +98,8 @@ public class ExtractSTRAIGHT extends ExtractBase
 
         // Compute the variance of the data
         buffer = ByteBuffer.allocate(1024);
-        buffer.order(ByteOrder.LITTLE_ENDIAN); // Data is in little_endian not big endian !
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+
         while(inChannel.read(buffer) > 0)
         {
             buffer.flip();
@@ -127,7 +128,6 @@ public class ExtractSTRAIGHT extends ExtractBase
     {
         // Normalisation coefficient computation
         double norm_coef = computeNormalisationRate(input_file_name);
-
 
         // Init template engine
         VelocityEngine ve = new VelocityEngine();
@@ -174,6 +174,7 @@ public class ExtractSTRAIGHT extends ExtractBase
                 throw new Exception("extToFile does not contain\"" + ext + "\" associated output file path");
             }
         }
+
         if ((logF0Flag) && (!extToFile.containsKey("lf0")))
         {
             throw new Exception(" extToDir does not contain \"lf0\" associated output file path");
@@ -212,6 +213,6 @@ public class ExtractSTRAIGHT extends ExtractBase
         }
 
         // 3. clean
-        // script_file.delete();
+        script_file.delete();
     }
 }
