@@ -23,10 +23,10 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
 
         project.afterEvaluate {
             project.task("configurationExtraction") {
-                dependsOn "configuration"
+                // dependsOn "configuration"
 
-                ext.nb_proc = project.configuration.hasProperty("nb_proc") ? project.configuration.nb_proc : 1
-                ext.user_configuration = project.configuration.hasProperty("user_configuration") ? project.configuration.user_configuration : null
+                ext.nb_proc = project.ext.vb_configuration.hasProperty("nb_proc") ? project.vb_configuration.nb_proc : 1
+                ext.user_configuration = project.vb_configuration // .hasProperty("user_configuration") ? project.vb_configuration.user_configuration : null
             }
 
 
@@ -34,7 +34,7 @@ class CoefficientExtractionPlugin implements Plugin<Project> {
             "ema":          new EMAProcess(),
             "straight":     new STRAIGHTProcess(),
             "straightdnn" : new STRAIGHTDNNProcess(),
-            "spline":       new SplineProcess(),
+            // "spline":       new SplineProcess(),
             "world":        new WorldProcess(),
             "straightema":  new STRAIGHTEMAProcess(),
             "straightemadnn":  new STRAIGHTEMADNNProcess(),
