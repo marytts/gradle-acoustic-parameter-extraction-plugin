@@ -64,10 +64,10 @@ fclose(f);
         this.frameshift_syl = frameshift_syl;
     }
 
-    public void extract(String input_file_name) throws Exception
+    public void extract(File input_file) throws Exception
     {
         // Extract logF0 if wanted
-        String[] tokens = (new File(input_file_name)).getName().split("\\.(?=[^\\.]+\$)");
+        String[] tokens = input_file.getName().split("\\.(?=[^\\.]+\$)");
         String output_file_name = extToDir.get("spline") + "/" + tokens[0] + ".spline";
 
         // Generate script file
@@ -78,7 +78,7 @@ fclose(f);
             "FRAMESHIFT" : frameshift,
             "LAB_FILENAME_SYL":extToDir.get("lab") + "/" + tokens[0] + ".lab",
             "PARAMS_FILENAME_SYL": output_file_name,
-            "F0_FILENAME": input_file_name,
+            "F0_FILENAME": input_file.getName(),
             "PROJDIR": extToDir.get("projdir")
         ]
         def output = simple.createTemplate(template).make(bindings).toString()
