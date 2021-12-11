@@ -141,7 +141,7 @@ public class ExtractSTRAIGHT extends ExtractBase
         context.put("frameshift", this.frameshift);
         context.put("mini_f0", this.mini_F0);
         context.put("maxi_f0", this.maxi_F0);
-        context.put("norm_coef", norm_coef);
+        context.put("norm_coef", 32768.0); // FIXME: hardcoded
         context.put("input_file_name", input_file_name);
         context.put("f0_output", extToFile.get("f0"));
         context.put("sp_output", extToFile.get("sp"));
