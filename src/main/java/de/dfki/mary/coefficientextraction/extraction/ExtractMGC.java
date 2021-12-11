@@ -14,6 +14,7 @@ import java.util.Hashtable;
  */
 public class ExtractMGC extends ExtractBase
 {
+    private int fftlen;
     private float samplerate;
     private float freqwarp;
     private float gamma;
@@ -23,6 +24,7 @@ public class ExtractMGC extends ExtractBase
 
     public ExtractMGC()
     {
+        setFFTLen(1024);
         setSampleRatekHz(48f);
         setOrder((short) 49);
         setGamma(0);
@@ -32,6 +34,7 @@ public class ExtractMGC extends ExtractBase
 
     public ExtractMGC(boolean spectrum_flag)
     {
+        setFFTLen(1024);
         setSampleRatekHz(48f);
         setOrder((short) 49);
         setGamma(0);
@@ -80,6 +83,10 @@ public class ExtractMGC extends ExtractBase
         }
     }
 
+    public void setFFTLen(int fftlen) {
+        this.fftlen = fftlen;
+    }
+
     public void setGamma(float gamma)
     {
         this.gamma = gamma;
@@ -124,7 +131,8 @@ public class ExtractMGC extends ExtractBase
         String command = "cat " + input_file_name + " |";
         if (gamma == 0)
         {
-            command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e 1.0E-08 -j 0 -f 0.0 -q 3 > " + output_file_name;
+            command += "sopr -R -m 32768.0 | ";
+            command += 	"mcep -a " + freqwarp + " -m " + order + " -l " + fftlen + " -e 1.0E-08 -j 0 -f 0.0 -q 3 > " + extToFile.get("mgc").toString();
         }
         else
         {
@@ -133,8 +141,8 @@ public class ExtractMGC extends ExtractBase
             {
                 logGainOpt = " -l";
             }
-            command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e 1.0E-08 -j 0 -f 0.0 -q 3 -o 4 | ";
-            command +=  "lpc2lsp -m " + order + logGainOpt + " -n 2048 -d 1.0E-08 -p 8 > " + output_file_name;
+            command += 	"mcep -a " + freqwarp + " -m " + order + " -l " + fftlen + " -e 1.0E-08 -j 0 -f 0.0 -q 3 -o 4 | ";
+            command +=  "lpc2lsp -m " + order + logGainOpt + " -n " + fftlen + " -d 1.0E-08 -p 8 > " + output_file_name;
         }
 
 

@@ -30,6 +30,7 @@ import java.util.Hashtable;
  */
 public class ExtractBAP extends ExtractBase
 {
+    private int fftlen;
     private double determinant_threshold;
     private int maximum_iteration;
     private double periodogram_noise_value;
@@ -67,6 +68,7 @@ public class ExtractBAP extends ExtractBase
 
     public ExtractBAP()
     {
+        setFFTLen(1024);
         setSampleRate(48f);
         setFreqWarp(getSampleRate());
         setOrder((int) 24);
@@ -120,6 +122,10 @@ public class ExtractBAP extends ExtractBase
         }
     }
 
+    public void setFFTLen(int fftlen) {
+        this.fftlen = fftlen;
+    }
+
     public int getOrder() {
         return this.order;
     }
@@ -165,10 +171,12 @@ public class ExtractBAP extends ExtractBase
         Process p;
 
         // 1. Generate full command
-        String command = "cat " + input_file.toString() + " |";
-        command += 	"mcep -a " + freqwarp + " -m " + order + " -l 2048 -e 1.0E-08 -j 0 -f 0.0 -q 1 > " + extToFile.get("bap").toString();
+        String command = "cat " + input_file.toString() + " | ";
+        command += "sopr -R -m 32768.0 | ";
+        command += "mcep -a " + freqwarp + " -m " + order + " -l " + fftlen + " -e 1.0E-08 -j 0 -f 0.0 -q 3 > " + extToFile.get("bap").toString();
 
         // 2. extraction
+        System.out.println(command);
         String[] cmd = {"bash", "-c", command};
         p = Runtime.getRuntime().exec(cmd);
         p.waitFor();

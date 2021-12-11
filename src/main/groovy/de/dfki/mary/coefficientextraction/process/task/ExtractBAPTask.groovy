@@ -64,7 +64,7 @@ public class ExtractBAPTask extends DefaultTask {
                     @Override
                     public void execute(WorkerConfiguration config) {
                         config.setIsolationMode(IsolationMode.NONE);
-                        config.params(ap_file, bap_file, project.configuration.user_configuration);
+                        config.params(ap_file, bap_file, project.vb_configuration);
                     }
                 });
         }
@@ -115,6 +115,9 @@ class ExtractBAPWorker implements Runnable {
             if (stream.kind ==  "bap") {
                 if (stream.order){
                     extractor.setOrder(stream.order.shortValue())
+                }
+                if (stream.fftlen){
+                    extractor.setFFTLen(stream.parameters.fftlen)
                 }
             }
         }

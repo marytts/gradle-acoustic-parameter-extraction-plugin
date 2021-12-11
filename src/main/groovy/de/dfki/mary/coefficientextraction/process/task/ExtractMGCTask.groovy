@@ -64,7 +64,7 @@ public class ExtractMGCTask extends DefaultTask {
                     @Override
                     public void execute(WorkerConfiguration config) {
                         config.setIsolationMode(IsolationMode.NONE);
-                        config.params(sp_file, mgc_file, project.configuration.user_configuration);
+                        config.params(sp_file, mgc_file, project.vb_configuration);
                     }
                 });
         }
@@ -120,7 +120,10 @@ class ExtractMGCWorker implements Runnable {
                     extractor.setGamma(stream.parameters.gamma)
                 }
                 if (stream.use_lngain){
-                    extractor.set(stream.parameters.use_lngain)
+                    extractor.setLogGainFlag(stream.parameters.use_lngain)
+                }
+                if (stream.fftlen){
+                    extractor.setFFTLen(stream.parameters.fftlen)
                 }
             }
         }
