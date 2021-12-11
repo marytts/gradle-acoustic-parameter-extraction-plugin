@@ -75,7 +75,7 @@ public class ExtractWorldTask extends DefaultTask {
                     public void execute(WorkerConfiguration config) {
                         config.setIsolationMode(IsolationMode.NONE);
                         config.params(wav_file, sp_file, f0_file, ap_file,
-                                      project.configuration.user_configuration);
+                                      project.vb_configuration);
                     }
                 });
         }

@@ -42,13 +42,13 @@ class WorldProcess implements ProcessInterface
             dependsOn.add("configurationExtraction")
 
             // Define directories
-            wav_dir = project.configuration.wav_dir
+            wav_dir = project.vb_configuration.data.wav_dir
             sp_dir = new File("$project.buildDir/sp/")
             f0_dir = new File("$project.buildDir/f0/")
             ap_dir = new File("$project.buildDir/ap/")
 
             // Define list_basenames
-            list_basenames = project.configuration.list_basenames
+            list_basenames = project.vb_configuration.data.list_basenames
         }
 
         /**
@@ -64,7 +64,7 @@ class WorldProcess implements ProcessInterface
             bap_dir = new File("$project.buildDir/bap/")
 
             // Define list_basenames
-            list_basenames = project.configuration.list_basenames
+            list_basenames = project.vb_configuration.data.list_basenames
         }
 
 
@@ -81,7 +81,7 @@ class WorldProcess implements ProcessInterface
             mgc_dir = new File("$project.buildDir/mgc/")
 
             // Define list_basenames
-            list_basenames = project.configuration.list_basenames
+            list_basenames = project.vb_configuration.data.list_basenames
         }
 
         /**
@@ -97,7 +97,7 @@ class WorldProcess implements ProcessInterface
             lf0_dir = new File("$project.buildDir/lf0/")
 
             // Define list_basenames
-            list_basenames = project.configuration.list_basenames
+            list_basenames = project.vb_configuration.data.list_basenames
         }
 
 
